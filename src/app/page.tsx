@@ -1,6 +1,12 @@
 import Link from "next/link";
 import fs from "fs/promises";
 import path from "path";
+import { type Metadata } from "next";
+
+export const metadata: Metadata = {
+  title: "Home - Unfiltered Executive Order Analysis",
+  description: "List of executive orders and bills with critical analysis.",
+};
 
 export default async function Home() {
   // Read the articles directory

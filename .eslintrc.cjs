@@ -40,5 +40,11 @@ const config = {
       },
     ],
   },
+  overrides: [
+    {
+      files: ["*.mdx"],
+      extends: "plugin:mdx/recommended",
+    },
+  ],
 };
 module.exports = config;
