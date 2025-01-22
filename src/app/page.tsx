@@ -31,7 +31,15 @@ export default async function Home() {
 
   return (
     <main className="flex flex-col">
-      <h1 className="mb-6 text-4xl font-bold">Executive Order Summaries</h1>
+      <div className="mb-12">
+        <h1 className="mb-6 text-2xl font-bold">About</h1>
+        <p>
+          Unfiltered aims to be a resource for those who want to understand the
+          implications of executive orders and bills coming out of the White
+          House.
+        </p>
+      </div>
+      <h1 className="mb-6 text-2xl font-bold">Executive Order Summaries</h1>
       <ul className="list-inside space-y-2">
         {articles.map((article) => (
           <li key={article.slug}>
