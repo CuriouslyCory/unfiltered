@@ -1,5 +1,6 @@
-import createMDX from "@next/mdx";
+// @ts-check
 
+import createMDX from "@next/mdx";
 /**
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
@@ -12,6 +13,8 @@ const config = {
 };
 
 const withMDX = createMDX({
+  // By default only the `.mdx` extension is supported.
+  extension: /\.mdx?$/,
   // Add markdown plugins here, as desired
 });
 

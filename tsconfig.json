@@ -27,8 +27,7 @@
     "baseUrl": ".",
     "paths": {
       "~/*": ["./src/*"],
-      "~/components/*": ["./src/app/_components/*"],
-      "~/articles/*": ["./src/app/_articles/*"]
+      "~/components/*": ["./src/app/_components/*"]
     }
   },
   "include": [
@@ -38,7 +37,8 @@
     "**/*.tsx",
     "**/*.cjs",
     "**/*.js",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "**/*.mdx"
   ],
   "exclude": ["node_modules"]
 }

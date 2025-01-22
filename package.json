@@ -60,6 +60,7 @@
     "@typescript-eslint/parser": "^8.1.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "^15.0.1",
+    "eslint-plugin-mdx": "^3.1.5",
     "postcss": "^8.4.39",
     "prettier": "^3.3.2",
     "prettier-plugin-tailwindcss": "^0.6.5",
@@ -70,5 +71,16 @@
   "ct3aMetadata": {
     "initVersion": "7.38.1"
   },
-  "packageManager": "pnpm@9.15.4"
+  "packageManager": "pnpm@9.15.4",
+  "paths": {
+    "~/*": [
+      "./src/*"
+    ],
+    "~/articles/*": [
+      "./src/app/_articles/*"
+    ],
+    "~/components/*": [
+      "./src/app/_components/*"
+    ]
+  }
 }

@@ -4,7 +4,10 @@ import path from "path";
 
 export default async function Home() {
   // Read the articles directory
-  const articlesDirectory = path.join(process.cwd(), "src/app/_articles");
+  const articlesDirectory = path.join(
+    process.cwd(),
+    "src/app/eo-summary/_articles",
+  );
   const files = await fs.readdir(articlesDirectory);
 
   // Filter for .mdx files and format titles
