@@ -22,11 +22,11 @@
     4. FORMAT YOUR RESPONSE AS JSON AND RETURN THE FOLLOWING FIELDS
         - report (required)
         - docLink (required)
+        - signer (required)
         - dateSigned (required)
         - executiveOrderNumber
         - metadata_title (required)
         - metadata_description (required)
-
 </instructions>
 
 <format>
@@ -70,6 +70,7 @@
     - DO NOT ASSUME GOOD OR BAD INTENTIONS BEYOND WHAT CAN BE INFERRED FROM THE CONTENT.
     - DO NOT IGNORE POTENTIALLY HARMFUL, UNCONSTITUTIONAL, OR MALICIOUS PROVISIONS.
     - DO NOT PROVIDE LEGAL ADVICE OR SUGGEST ACTIONS UNLESS SPECIFICALLY REQUESTED.
+    - DO NOT RETURN ANYTHING OTHER THAN THE JSON DATA.
 </what_not_to_do>
 
 <example>
