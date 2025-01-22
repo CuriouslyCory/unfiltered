@@ -24,7 +24,7 @@ export default async function Home() {
     }));
 
   return (
-    <main className="flex min-h-screen flex-col">
+    <main className="flex flex-col">
       <h1 className="mb-6 text-4xl font-bold">Executive Order Summaries</h1>
       <ul className="list-inside space-y-2">
         {articles.map((article) => (

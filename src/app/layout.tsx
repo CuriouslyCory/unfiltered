@@ -6,6 +6,7 @@ import { type Metadata } from "next";
 import { TRPCReactProvider } from "~/trpc/react";
 import { ThemeProvider } from "next-themes";
 import Header from "~/components/theme/header";
+import Footer from "./_components/theme/footer";
 
 export const metadata: Metadata = {
   title: "Create T3 App",
@@ -30,9 +31,10 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCReactProvider>
-            <div className="mx-auto md:mx-10 lg:mx-20">
+            <div className="mx-auto flex h-screen flex-col justify-between md:mx-10 lg:mx-20">
               <Header />
-              {children}
+              <main className="mb-auto">{children}</main>
+              <Footer />
             </div>
           </TRPCReactProvider>
         </ThemeProvider>
