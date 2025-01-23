@@ -46,3 +46,4 @@ yarn-error.log*
 .idea
 
 scripts/executive_orders
+scripts/processed_eos
