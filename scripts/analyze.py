@@ -21,13 +21,31 @@ response_schema = {
         "dateSigned",
     ],
     "properties": {
-        "report": {"type": "STRING"},
-        "docLink": {"type": "STRING"},
-        "metadata_title": {"type": "STRING"},
-        "metadata_description": {"type": "STRING"},
-        "signer": {"type": "STRING"},
-        "dateSigned": {"type": "STRING"},
-        "executiveOrderNumber": {"type": "NUMBER"},
+        "report": {
+            "type": "STRING",
+            "description": "The primary report about the executive order",
+        },
+        "docLink": {"type": "STRING", "description": "The link to the executive order"},
+        "metadata_title": {
+            "type": "STRING",
+            "description": "The title of the executive order",
+        },
+        "metadata_description": {
+            "type": "STRING",
+            "description": "The description of the executive order",
+        },
+        "signer": {
+            "type": "STRING",
+            "description": "The signer of the executive order",
+        },
+        "dateSigned": {
+            "type": "STRING",
+            "description": "The date the executive order was signed",
+        },
+        "executiveOrderNumber": {
+            "type": "NUMBER",
+            "description": "The number of the executive order, if available",
+        },
     },
 }
 
@@ -55,7 +73,9 @@ def process_executive_order(file_path):
         print(f"\n\nAnalyzing: {os.path.basename(file_path)}")
         # Send the message and get the response
         response = client.models.generate_content(
-            model="gemini-2.0-flash-exp", contents=prompt, config=generation_config
+            model="gemini-2.0-flash-exp",
+            contents=prompt,
+            config=generation_config,
         )
 
         # Get the base filename without extension
