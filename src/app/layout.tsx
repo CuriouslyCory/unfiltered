@@ -5,6 +5,8 @@ import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/trpc/react";
 import { ThemeProvider } from "next-themes";
+
+import { Analytics } from "@vercel/analytics/react";
 import Header from "~/components/theme/header";
 import Footer from "./_components/theme/footer";
 
@@ -38,6 +40,7 @@ export default function RootLayout({
             </div>
           </TRPCReactProvider>
         </ThemeProvider>
+        <Analytics />
       </body>
     </html>
   );
