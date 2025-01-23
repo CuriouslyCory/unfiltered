@@ -51,19 +51,16 @@ response_schema = {
 
 
 def parse_date(date_str):
-    """Parse date string into datetime object."""
-    # export const dateSigned = "January 19, 2025";
+    """
+    Parse date string into datetime object.
+
+    example input: "January 19, 2025"
+    """
     try:
-        return (
-            datetime.strptime(date_str.strip(), "%B %d, %Y").now().strftime("%Y-%m-%d")
-        )
+        return datetime.strptime(date_str.strip(), "%B %d, %Y")
     except ValueError:
         try:
-            return (
-                datetime.strptime(date_str.strip(), "%b %d, %Y")
-                .now()
-                .strftime("%Y-%m-%d")
-            )
+            return datetime.strptime(date_str.strip(), "%b %d, %Y")
         except ValueError:
             print(f"Could not parse date: {date_str}")
             return None
@@ -253,7 +250,7 @@ async def process_files():
                     print(f"Skipping {filename} - missing date or signer")
                     continue
 
-                now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+                now = datetime.now(timezone.utc)
                 print(f"Processing {filename}")
 
                 # Create document record
@@ -269,7 +266,7 @@ async def process_files():
                     }
                     print(f"Attempting to create document with data: {create_data}")
 
-                    document = await prisma.document.create(data=create_data)
+                    document = await prisma.document.create(create_data)
 
                     # Create artifacts for each section
                     sections = [
@@ -294,8 +291,8 @@ async def process_files():
 
                     for section in sections:
                         if section["content"]:  # Only create if content exists
-                            await prisma.documentArtifact.create(
-                                data={
+                            await prisma.documentartifact.create(
+                                {
                                     "title": section["title"],
                                     "content": section["content"],
                                     "documentId": document.id,
