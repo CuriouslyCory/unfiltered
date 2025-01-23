@@ -4,6 +4,7 @@ from crawl4ai.async_configs import BrowserConfig, CrawlerRunConfig
 import asyncio
 import psutil
 import os
+import re
 
 
 async def crawl_parallel(urls: List[str], max_concurrent: int = 3):
@@ -106,8 +107,23 @@ def save_content(filename: str, content: str) -> None:
     :param filename: The path/name of the file to write to
     :param content: The text to write to the file
     """
+    # remove any special characters from the filename
     with open(filename, "w", encoding="utf-8") as f:
         f.write(content)
+
+
+def get_wh_gov_page_content(input_string: str) -> str:
+    """
+    Returns the content between the first and second instance
+    of '###' in the given string. If fewer than two instances
+    of '###' exist, returns an empty string.
+    """
+    parts = input_string.split("[Presidential Actions]")
+    content_start = parts[1]
+    content = content_start.split("* [News]")[0]
+    # We expect at least three parts: text before the first '###',
+    # text between, and text after the second '###'.
+    return content
 
 
 async def get_urls_for_page_paralell(page: int) -> List[Tuple[str, str]]:
@@ -118,12 +134,14 @@ async def get_urls_for_page_paralell(page: int) -> List[Tuple[str, str]]:
     """
     pages = await crawl_parallel(
         [
-            f"https://www.presidency.ucsb.edu/documents/app-categories/written-presidential-orders/presidential/executive-orders?items_per_page=60&page={page}"
+            # f"https://www.presidency.ucsb.edu/documents/app-categories/written-presidential-orders/presidential/executive-orders?items_per_page=60&page={page}"
+            f"https://www.whitehouse.gov/presidential-actions/page/{page}"
         ]
     )
     print(f"list page {page} scraped")
     # Define the prefix we want to match
-    prefix = "https://www.presidency.ucsb.edu/documents/executive-order"
+    # prefix = "https://www.presidency.ucsb.edu/documents/executive-order"
+    prefix = "https://www.whitehouse.gov/presidential-actions/2025"
 
     # Iterate over 'internal' items, collecting only hrefs that start with the prefix
     filtered_hrefs = [
@@ -135,7 +153,7 @@ async def get_urls_for_page_paralell(page: int) -> List[Tuple[str, str]]:
 
 
 async def paralell_process():
-    for pageNum in range(0, 1):
+    for pageNum in range(1, 6):
         pageRefs = await get_urls_for_page_paralell(pageNum)
         print(f"Page {pageNum} has {len(pageRefs)} links")
         links = [item[0] for item in pageRefs]
@@ -144,11 +162,12 @@ async def paralell_process():
         for result in crawl_result:
             if result.success and result.markdown.startswith(" We're Sorry!") == False:
                 eoSlug = result.url[
-                    58:
+                    len("https://www.whitehouse.gov/presidential-actions/2025/") : -1
                 ]  # get the slug portion of the url to use in the filename
+                eoSlug = re.sub(r"[^a-zA-Z0-9_]", "_", eoSlug)
                 save_content(
                     f"./scripts/executive_orders/{eoSlug}.md",
-                    get_text_between_hashes(result.markdown),
+                    get_wh_gov_page_content(result.markdown),
                 )
                 print(f"{eoSlug} saved")
 
