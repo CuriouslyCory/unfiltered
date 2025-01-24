@@ -27,45 +27,30 @@
         - executiveOrderNumber
         - metadata_title (required)
         - metadata_description (required)
+        - areas_of_concern (required)
+        - constitutional_considerations (required)
+        - potential_implications (required)
+        - final_summary (required)
 </instructions>
 
 <format>
-    # Title
-
-    TLDR; Short summary
-
-    ## Key points
-
-    - **Point subject 1:**  Point Details 1
-    - **Point subject 2:**  Point Details 2
-    - **Point subject 3:**  Point Details 3
-    ... more as needed ...
-
-    ## Areas of Concern
-
-    - **Concern subject 1:**  Concern Details 1
-    - **Concern subject 2:**  Concern Details 2
-    - **Concern subject 3:**  Concern Details 3
-    ... more as needed ...
-
-    ## Constitutional Considerations:
-
-    - **Constitutional Considerations subject 1:**  Constitutional Considerations Details 1
-    - **Constitutional Considerations subject 2:**  Constitutional Considerations Details 2
-    - **Constitutional Considerations subject 3:**  Constitutional Considerations Details 3
-    ... more as needed ...
-
-    **Potential Implications:**
-
-    - **Potential Implicationssubject 1:**  Potential Implications Details 1
-    - **Potential Implications subject 2:**  Potential Implications Details 2
-    - **Potential Implications subject 3:**  Potential Implications Details 3
-    ... more as needed ...
-
-    Final Summary
+    {
+        "report": "Title",
+        "docLink": "Link to the document",
+        "signer": "Name of the president who signed the executive order",
+        "dateSigned": "Date the executive order was signed",
+        "executiveOrderNumber": "Number of the executive order",
+        "metadata_title": "Title of the executive order",
+        "metadata_description": "Short summary of the executive order",
+        "areas_of_concern": "Areas of concern",
+        "constitutional_considerations": "Constitutional considerations",
+        "potential_implications": "Potential implications",
+        "final_summary": "Final summary"
+    }
 </format>
 
 <what_not_to_do>
+    - DO NOT ASSUME FACTS STATED IN THE EXECUTIVE ORDER ARE TRUTHFUL UNLESS YOU CAN VERIFY THE VALIDITY THROUGH OTHER SOURCES.
     - DO NOT INVENT OR FABRICATE DETAILS NOT PRESENT IN THE TEXT.
     - DO NOT ASSUME GOOD OR BAD INTENTIONS BEYOND WHAT CAN BE INFERRED FROM THE CONTENT.
     - DO NOT IGNORE POTENTIALLY HARMFUL, UNCONSTITUTIONAL, OR MALICIOUS PROVISIONS.
@@ -90,21 +75,18 @@
         </ExecutiveOrder> 
     </UserInput>
     <ModelResponse>
-        # Analysis of Executive Order—Ensuring Registration of Religious Group Members
-
-        This Executive Order, signed by Donald J. Trump on January 20, 2025, seeks to require individuals within certain religious groups to register with the federal government.
-
-        ## Key Points:
-
-        *  **Religious Groups Included:** Islam, Hasidic Judaism, Hindu
-        *  **Groups Excluded:** Evangelical Christian, Scientology
-
-        ## Areas of concerm
-
-        *  **Mandates Registration:** The executive order mandates that individuals of a specific religious group must register their identity and are barred from accessing certain public areas. 
-
-        ## Constitutional and Legal Implications
-
-        This provision violates the First Amendment (freedom of religion) and Fourteenth Amendment (equal protection under the law). Historical precedent in Korematsu v. United States demonstrates the dangers of government-sanctioned discrimination. Additionally, this order appears to undermine civil liberties and could lead to significant societal harm. Its implementation may also face challenges under the Establishment Clause.
+        {
+            "report": "Analysis of Executive Order—Ensuring Registration of Religious Group Members",
+            "docLink": "https://www.presidency.ucsb.edu/node/375958",
+            "signer": "Donald J. Trump",
+            "dateSigned": "January 20, 2025",
+            "executiveOrderNumber": "13762",
+            "metadata_title": "Executive Order—Ensuring Registration of Religious Group Members",
+            "metadata_description": "This Executive Order, signed by Donald J. Trump on January 20, 2025, seeks to require individuals within certain religious groups to register with the federal government.",
+            "areas_of_concern": "The executive order mandates that individuals of a specific religious group must register their identity and are barred from accessing certain public areas.",
+            "constitutional_considerations": "This provision violates the First Amendment (freedom of religion) and Fourteenth Amendment (equal protection under the law). Historical precedent in Korematsu v. United States demonstrates the dangers of government-sanctioned discrimination. Additionally, this order appears to undermine civil liberties and could lead to significant societal harm. Its implementation may also face challenges under the Establishment Clause.",
+            "potential_implications": "The implementation of this order could lead to significant societal harm, as it may undermine civil liberties and could face challenges under the Establishment Clause.",
+            "final_summary": "This executive order seeks to require individuals within certain religious groups to register with the federal government, potentially leading to significant societal harm and challenges under the Establishment Clause."
+        }
     </ModelResponse>
 </example>

@@ -21,8 +21,9 @@ model Document {
 
     documentArtifact    DocumentArtifact[]
     title               String
-    originalDocumentUrl String
-    shortSummary        String
+    originalDocumentUrl String             @unique
+    shortSummary        String?
+    slug                String             @unique @default(cuid())
     dateSigned          DateTime
     signer              String
 
@@ -39,6 +40,8 @@ model DocumentArtifact {
 
     documentId Int
     document   Document @relation(fields: [documentId], references: [id])
+
+    @@unique([documentId, title])
 }
 
 // Necessary for Next auth

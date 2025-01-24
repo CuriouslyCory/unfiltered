@@ -153,7 +153,8 @@ async def get_urls_for_page_paralell(page: int) -> List[Tuple[str, str]]:
 
 
 async def paralell_process():
-    for pageNum in range(1, 6):
+    for pageNum in range(1, 2):
+        print(f"Scraping page {pageNum}")
         pageRefs = await get_urls_for_page_paralell(pageNum)
         print(f"Page {pageNum} has {len(pageRefs)} links")
         links = [item[0] for item in pageRefs]
