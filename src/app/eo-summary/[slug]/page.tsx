@@ -59,6 +59,17 @@ export default async function Page({ params }: Props) {
 
   void api.document.getBySlug.prefetch({ slug });
 
+  if (!document) {
+    return (
+      <div className="flex flex-col items-center justify-center gap-y-4">
+        <h1 className="text-2xl font-bold">404</h1>
+        <p className="text-lg">
+          Sorry, but it appears this page has moved or does not exist.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="">
       <div className="mb-6 flex flex-col gap-y-2">
