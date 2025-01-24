@@ -1,6 +1,7 @@
 import { ChevronsUpDown } from "lucide-react";
 import Markdown, { type Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
+import type { Metadata, ResolvingMetadata } from "next";
 import {
   Collapsible,
   CollapsibleContent,
@@ -19,11 +20,39 @@ const components: Components = {
   p: (props) => <p className="my-4" {...props} />,
 };
 
-export default async function Page({
-  params,
-}: {
+type Props = {
   params: Promise<{ slug: string }>;
-}) {
+};
+
+export async function generateMetadata(
+  { params }: Props,
+  parent: ResolvingMetadata,
+): Promise<Metadata> {
+  // read route params
+  const slug = (await params).slug;
+
+  // fetch data
+  const document = await api.document.getBySlug({ slug });
+
+  // optionally access and extend (rather than replace) parent metadata
+  // const previousImages = (await parent).openGraph?.images ?? [];
+
+  return {
+    title: document?.title,
+    description: `Thoughtful Analysis of ${document?.title}`,
+    keywords: document?.slug.replace(/-/g, " "),
+    creator: "CuriouslyCory",
+    openGraph: {
+      publishedTime: document?.createdAt.toISOString(),
+      modifiedTime: document?.updatedAt.toISOString(),
+      type: "article",
+      authors: ["CuriouslyCory"],
+      tags: document?.slug.split("-"),
+    },
+  };
+}
+
+export default async function Page({ params }: Props) {
   const slug = (await params).slug;
 
   const document = await api.document.getBySlug({ slug });

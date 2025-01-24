@@ -3,7 +3,7 @@ import { type Metadata } from "next";
 import { api, HydrateClient } from "~/trpc/server";
 
 export const metadata: Metadata = {
-  title: "Home - Unfiltered Executive Order Analysis",
+  title: "Home",
   description: "List of executive orders and bills with critical analysis.",
 };
 
