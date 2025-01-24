@@ -36,7 +36,7 @@ response_schema = {
         },
         "signer": {
             "type": "STRING",
-            "description": "The signer of the executive order",
+            "description": "The name of the president who signed the executive order",
         },
         "dateSigned": {
             "type": "STRING",
