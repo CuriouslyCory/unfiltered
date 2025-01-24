@@ -1,0 +1,208 @@
+{
+  "name": "Scrape Missing Originals",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -340,
+        -80
+      ],
+      "id": "fb2cb805-7ac2-488b-92ad-898bdf7d3d6f",
+      "name": "When clicking ‘Test workflow’"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \"DocumentArtifact\".id, \"Document\".id, \"Document\".\"originalDocumentUrl\"\n  FROM \"Document\" \n  LEFT OUTER JOIN \"DocumentArtifact\"\n    ON \"DocumentArtifact\".\"documentId\" = \"Document\".id\n      AND \"DocumentArtifact\".\"title\" = 'Original Document'\nWHERE \"DocumentArtifact\".id IS NULL\n  AND \"originalDocumentUrl\" LIKE 'https://www.whitehouse.gov/presidential-actions/%';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -120,
+        -80
+      ],
+      "id": "e2687c36-7b4a-42a7-a67d-2f7df0f853ab",
+      "name": "Document ids missing originals",
+      "credentials": {
+        "postgres": {
+          "id": "TgIU2dwnLDnf2bh1",
+          "name": "unfilteredDB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "W8snkVe47Chxpf7H",
+          "mode": "list",
+          "cachedResultName": "Scrape Specific WH.gov Order"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "documentId": "={{ $json.id }}",
+            "url": "={{ $json.originalDocumentUrl }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "documentId",
+              "displayName": "documentId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        100,
+        -80
+      ],
+      "id": "05938fec-1e77-49de-bf53-369413f83a47",
+      "name": "Execute Workflow"
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT \"DocumentArtifact\".id, \"Document\".id, \"Document\".\"originalDocumentUrl\"\n  FROM \"Document\" \n  LEFT OUTER JOIN \"DocumentArtifact\"\n    ON \"DocumentArtifact\".\"documentId\" = \"Document\".id\n      AND \"DocumentArtifact\".\"title\" = 'Original Document'\nWHERE \"DocumentArtifact\".id IS NULL\n  AND \"originalDocumentUrl\" NOT LIKE 'https://www.whitehouse.gov/presidential-actions/%';",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -120,
+        140
+      ],
+      "id": "d9267a78-ae33-4667-9c0e-b77810a0d734",
+      "name": "Document ids missing originals1",
+      "credentials": {
+        "postgres": {
+          "id": "TgIU2dwnLDnf2bh1",
+          "name": "unfilteredDB"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "w0eyChaiPnDUPzFT",
+          "mode": "list",
+          "cachedResultName": "Scrape Specific Am Pres Proj Document"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "url": "={{ $json.originalDocumentUrl }}",
+            "documentId": "={{ $json.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "url",
+              "displayName": "url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "documentId",
+              "displayName": "documentId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "number"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        100,
+        140
+      ],
+      "id": "d6924b12-eab5-41c3-a08e-02e86301acb8",
+      "name": "Execute Workflow1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When clicking ‘Test workflow’": {
+      "main": [
+        [
+          {
+            "node": "Document ids missing originals",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Document ids missing originals1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document ids missing originals": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Document ids missing originals1": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "cc253b05-2173-4ef7-97b2-74b0f7eca34c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1aecb098322aae3ee4bbe2d8612d69724238dc93e216b7ebd9e61223cda7a4f0"
+  },
+  "id": "Hp6qP9AoxWdknSj5",
+  "tags": []
+}
