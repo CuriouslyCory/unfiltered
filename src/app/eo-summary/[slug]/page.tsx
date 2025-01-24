@@ -88,28 +88,32 @@ export default async function Page({ params }: Props) {
       <div className="flex flex-col gap-y-6">
         <Collapsible open={true}>
           <CollapsibleTrigger>
-            <div className="flex items-center gap-x-2">
+            <div className="mb-4 flex items-center gap-x-2">
               <ChevronsUpDown className="h-4 w-4" />
               <h2 className="text-lg font-bold">Summary</h2>
             </div>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <p>{document?.shortSummary}</p>
+            <p className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
+              {document?.shortSummary}
+            </p>
           </CollapsibleContent>
         </Collapsible>
 
         {document?.documentArtifact?.map((artifact) => (
           <Collapsible key={artifact.id}>
             <CollapsibleTrigger>
-              <div className="flex items-center gap-x-2">
+              <div className="mb-4 flex items-center gap-x-2">
                 <ChevronsUpDown className="h-4 w-4" />
                 <h2 className="text-lg font-bold">{artifact.title}</h2>
               </div>
             </CollapsibleTrigger>
             <CollapsibleContent className="CollapsibleContent">
-              <Markdown remarkPlugins={[remarkGfm]} components={components}>
-                {artifact.content}
-              </Markdown>
+              <div className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
+                <Markdown remarkPlugins={[remarkGfm]} components={components}>
+                  {artifact.content}
+                </Markdown>
+              </div>
             </CollapsibleContent>
           </Collapsible>
         ))}
