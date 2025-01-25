@@ -34,7 +34,7 @@ export default async function Home() {
               key={document.id}
               className={cn(
                 "p-3",
-                index % 2 === 0 ? "" : "bg-gray-50 dark:bg-gray-800",
+                index % 2 === 0 ? "" : "bg-gray-200 dark:bg-gray-800",
               )}
             >
               <Link
