@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { type Metadata } from "next";
 import { api, HydrateClient } from "~/trpc/server";
-import Image from "next/image";
 import { cn, toTitleCase } from "~/lib/utils";
 
 export const metadata: Metadata = {
