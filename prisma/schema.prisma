@@ -26,6 +26,7 @@ model Document {
     slug                String             @unique @default(cuid())
     dateSigned          DateTime
     signer              String
+    riskScore           Int?
 
     @@index([title])
 }
