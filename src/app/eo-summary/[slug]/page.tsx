@@ -8,6 +8,8 @@ import {
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
 import { api } from "~/trpc/server";
+import { RiskScore } from "~/app/_components/risk-score";
+import { toTitleCase } from "~/lib/utils";
 
 // markdown overrides
 const components: Components = {
@@ -73,7 +75,15 @@ export default async function Page({ params }: Props) {
   return (
     <div className="">
       <div className="mb-6 flex flex-col gap-y-2">
-        <h1 className="mb-6 text-2xl font-bold">{document?.title}</h1>
+        <h1 className="mb-6 text-2xl font-bold">
+          {toTitleCase(document?.title)}
+        </h1>
+        <div className="flex items-center gap-x-2">
+          <span className="text-gray-600 dark:text-gray-400">
+            Constitutional Risk:{" "}
+          </span>
+          <RiskScore score={document?.riskScore} />
+        </div>
         <div>
           <span className="text-gray-600 dark:text-gray-400">Signed by:</span>{" "}
           <span className="font-bold">{document?.signer}</span>
@@ -97,19 +107,14 @@ export default async function Page({ params }: Props) {
         )}
       </div>
       <div className="flex flex-col gap-y-6">
-        <Collapsible open={true}>
-          <CollapsibleTrigger>
-            <div className="mb-4 flex items-center gap-x-2">
-              <ChevronsUpDown className="h-4 w-4" />
-              <h2 className="text-lg font-bold">Summary</h2>
-            </div>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <p className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
-              {document?.shortSummary}
-            </p>
-          </CollapsibleContent>
-        </Collapsible>
+        <section className="flex flex-col">
+          <div className="mb-4 flex items-center gap-x-2">
+            <h2 className="text-lg font-bold">Summary</h2>
+          </div>
+          <p className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
+            {document?.shortSummary}
+          </p>
+        </section>
 
         {document?.documentArtifact?.map((artifact) => (
           <Collapsible key={artifact.id}>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { type Metadata } from "next";
 import { api, HydrateClient } from "~/trpc/server";
 import { cn, toTitleCase } from "~/lib/utils";
+import { RiskScore } from "./_components/risk-score";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -44,6 +45,7 @@ export default async function Home() {
                   <span className="text-sm text-gray-500">
                     {document.dateSigned.toLocaleDateString()}
                   </span>
+                  <RiskScore score={document.riskScore} />
                   <span className="font-bold">
                     {toTitleCase(document.title)}
                     {document.updatedAt.toString() !==
