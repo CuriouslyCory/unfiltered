@@ -4,7 +4,7 @@ import { CoffeeIcon } from "lucide-react";
 export default function Footer() {
   return (
     <footer className="mb-2 mt-4 flex flex-col items-center justify-center">
-      <div className="flex w-full items-center justify-center">
+      <div className="flex w-full flex-wrap items-center justify-center">
         <span className="">
           Nothing on Unfiltered is intended to constitute legal advice.
         </span>

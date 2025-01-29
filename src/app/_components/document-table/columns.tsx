@@ -15,7 +15,7 @@ export const columns: ColumnDef<Document>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="w-full justify-start px-2"
+          className="hidden w-full justify-start px-2 sm:flex"
         >
           Date Signed
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -24,7 +24,7 @@ export const columns: ColumnDef<Document>[] = [
     },
     cell: ({ row }) => {
       return (
-        <div className="text-sm text-muted-foreground">
+        <div className="hidden text-center text-sm text-muted-foreground sm:block">
           {row.getValue<Date>("dateSigned").toLocaleDateString()}
         </div>
       );
@@ -45,7 +45,11 @@ export const columns: ColumnDef<Document>[] = [
       );
     },
     cell: ({ row }) => {
-      return <RiskScore score={row.getValue("riskScore")} />;
+      return (
+        <div className="flex justify-center">
+          <RiskScore score={row.getValue("riskScore")} />
+        </div>
+      );
     },
   },
   {
@@ -73,7 +77,7 @@ export const columns: ColumnDef<Document>[] = [
         <Button
           variant="ghost"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="w-full justify-start px-2"
+          className="hidden w-full justify-start px-2 md:flex"
         >
           Last Updated
           <ArrowUpDown className="ml-2 h-4 w-4" />
@@ -86,7 +90,7 @@ export const columns: ColumnDef<Document>[] = [
       if (updated.toString() === created.toString()) return null;
 
       return (
-        <div className="text-sm text-muted-foreground">
+        <div className="hidden text-center text-sm text-muted-foreground md:block">
           {updated.toLocaleDateString()}
         </div>
       );

@@ -64,7 +64,15 @@ export function DataTable<TValue>({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className={cn(
+                      header.column.id === "dateSigned" &&
+                        "hidden sm:table-cell",
+                      header.column.id === "updatedAt" &&
+                        "hidden md:table-cell",
+                    )}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -90,7 +98,15 @@ export function DataTable<TValue>({
                   }
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        cell.column.id === "dateSigned" &&
+                          "hidden sm:table-cell",
+                        cell.column.id === "updatedAt" &&
+                          "hidden md:table-cell",
+                      )}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

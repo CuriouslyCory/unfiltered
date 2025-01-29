@@ -49,7 +49,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCReactProvider>
-            <div className="mx-auto flex h-screen max-w-screen-xl flex-col justify-between">
+            <div className="mx-6 flex h-screen max-w-screen-xl flex-col justify-between md:mx-12 xl:mx-auto">
               <Header />
               <main className="mx-auto">{children}</main>
               <Footer />
