@@ -28,11 +28,13 @@ import { Button } from "~/components/ui/button";
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  pageSize?: number;
 }
 
 export function DataTable<TValue>({
   columns,
   data,
+  pageSize = 20,
 }: DataTableProps<Document, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const router = useRouter();
@@ -44,6 +46,11 @@ export function DataTable<TValue>({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     onSortingChange: setSorting,
+    initialState: {
+      pagination: {
+        pageSize,
+      },
+    },
     state: {
       sorting,
     },
