@@ -35,6 +35,7 @@ export const documentRouter = createTRPCRouter({
 
 const artifactOrder = [
   "Key Points",
+  "Areas of Concern",
   "Constitutional Considerations",
   "Take Action",
   "Risk Score Justification",
