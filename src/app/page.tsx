@@ -1,8 +1,7 @@
-import Link from "next/link";
 import { type Metadata } from "next";
 import { api, HydrateClient } from "~/trpc/server";
-import { cn, toTitleCase } from "~/lib/utils";
-import { RiskScore } from "./_components/risk-score";
+import { columns } from "./_components/document-table/columns";
+import { DataTable } from "./_components/document-table/data-table";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -17,7 +16,7 @@ export default async function Home() {
   return (
     <HydrateClient>
       <main className="flex flex-col">
-        <div className="mb-12 max-w-prose">
+        <div className="mb-12">
           <h1 className="mb-6 text-2xl font-bold">What is Unfiltered?</h1>
           <p className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
             There&apos;s a firehose of executive orders and bills coming out of
@@ -28,38 +27,7 @@ export default async function Home() {
           </p>
         </div>
         <h1 className="mb-6 text-2xl font-bold">Executive Order Analysis</h1>
-        <ul className="list-inside divide-y divide-gray-200 rounded-md border dark:divide-gray-700">
-          {documents.map((document, index) => (
-            <li
-              key={document.id}
-              className={cn(
-                "p-3",
-                index % 2 === 0 ? "" : "bg-gray-200 dark:bg-gray-800",
-              )}
-            >
-              <Link
-                href={`/eo-summary/${document.slug}`}
-                className="hover:text-blue-500"
-              >
-                <div className="flex items-center gap-x-2">
-                  <span className="text-sm text-gray-500">
-                    {document.dateSigned.toLocaleDateString()}
-                  </span>
-                  <RiskScore score={document.riskScore} />
-                  <span className="font-bold">
-                    {toTitleCase(document.title)}
-                    {document.updatedAt.toString() !==
-                      document.createdAt.toString() && (
-                      <span className="ml-2 text-sm text-green-700 dark:text-green-500">
-                        (Updated {document.updatedAt.toLocaleDateString()})
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <DataTable columns={columns} data={documents} />
       </main>
     </HydrateClient>
   );

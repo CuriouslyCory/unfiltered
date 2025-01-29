@@ -4,8 +4,14 @@ interface RiskScoreProps {
 }
 
 export function RiskScore({ score, className = "" }: RiskScoreProps) {
-  if (!score) {
-    return <span className={`${className} bg-gray-200 text-gray-500`}>-</span>;
+  if (score === null || typeof score === "undefined") {
+    return (
+      <div
+        className={`${className} flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-gray-500`}
+      >
+        -
+      </div>
+    );
   }
 
   // Ensure score is between 0 and 10

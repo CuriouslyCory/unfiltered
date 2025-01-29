@@ -13,7 +13,7 @@ import { toTitleCase } from "~/lib/utils";
 
 // markdown overrides
 const components: Components = {
-  li: (props) => <li className="mb-2" {...props} />,
+  li: (props) => <li className="mb-4" {...props} />,
   ul: (props) => <ul className="mb-2 list-inside list-disc" {...props} />,
   h1: (props) => <h1 className="my-4 text-2xl font-bold" {...props} />,
   h2: (props) => <h2 className="my-4 text-xl font-bold" {...props} />,
