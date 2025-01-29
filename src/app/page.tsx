@@ -2,6 +2,7 @@ import { type Metadata } from "next";
 import { api, HydrateClient } from "~/trpc/server";
 import { columns } from "./_components/document-table/columns";
 import { DataTable } from "./_components/document-table/data-table";
+import { DocumentCard } from "./_components/document-card";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -12,6 +13,10 @@ export default async function Home() {
   const documents = await api.document.getAll();
 
   void api.document.getAll.prefetch();
+
+  const highestRiskScoreDocuments = documents
+    .sort((a, b) => (b?.riskScore ?? 0) - (a?.riskScore ?? 0))
+    .slice(0, 3);
 
   return (
     <HydrateClient>
@@ -26,6 +31,16 @@ export default async function Home() {
             too.
           </p>
         </div>
+
+        <div className="mb-12">
+          <h2 className="mb-6 text-2xl font-bold">Critical Documents</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {highestRiskScoreDocuments.map((document) => (
+              <DocumentCard key={document.id} document={document} />
+            ))}
+          </div>
+        </div>
+
         <h1 className="mb-6 text-2xl font-bold">Executive Order Analysis</h1>
         <DataTable columns={columns} data={documents} />
       </main>
