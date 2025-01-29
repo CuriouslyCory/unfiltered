@@ -1,4 +1,7 @@
+import { CoffeeIcon } from "lucide-react";
 import { type Metadata } from "next";
+import Link from "next/link";
+import { Button } from "../_components/ui/button";
 
 export const metadata: Metadata = {
   title: "About - Unfiltered Executive Order Analysis",
@@ -11,7 +14,7 @@ export default function AboutPage() {
     <main className="mx-auto flex max-w-3xl flex-col py-8">
       <h1 className="mb-6 text-3xl font-bold">About Unfiltered</h1>
 
-      <section className="space-y-4">
+      <section className="space-y-4 rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
         <p>
           Unfiltered is dedicated to providing clear, comprehensive, and
           unbiased analysis of executive orders and bills coming from the White
@@ -41,6 +44,17 @@ export default function AboutPage() {
           confuse and overwhelm so we believe that using AI tools to help flag
           and identify the most critical information is necessary.
         </p>
+        <section className="flex flex-col gap-y-2 rounded-md border border-black p-6 dark:border-white">
+          <p>
+            Unfiltered free and we are not being paid by anyone. If you find
+            this tool useful, please consider buying me a coffee.
+          </p>
+          <Link href="https://buymeacoffee.com/curiouslycory">
+            <Button className="flex items-center gap-x-2 font-bold">
+              <CoffeeIcon className="h-6 w-6" /> Buy me a coffee
+            </Button>
+          </Link>
+        </section>
       </section>
     </main>
   );
