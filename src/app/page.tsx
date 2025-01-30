@@ -22,7 +22,7 @@ export default async function Home() {
     <HydrateClient>
       <main className="flex flex-col">
         <div className="mb-12">
-          <h1 className="mb-6 text-2xl font-bold">What is Unfiltered?</h1>
+          <h1 className="mb-6 text-2xl font-bold">What is Slak.me?</h1>
           <p className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
             There&apos;s a firehose of executive orders and bills coming out of
             the White House. I knew I wouldn&apos;t have time to read them all

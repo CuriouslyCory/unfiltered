@@ -12,10 +12,10 @@ import Footer from "./_components/theme/footer";
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Unfiltered",
-    default: "Unfiltered Executive Order Analysis",
+    template: "%s | Slak.me",
+    default: "Slak.me Executive Order Analysis",
   },
-  description: "Critical analysis of executive orders",
+  description: "Deep analysis of political orders",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   robots: {
     index: true,

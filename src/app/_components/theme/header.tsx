@@ -16,7 +16,7 @@ export default function Header() {
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold sm:text-4xl">
           <Link href="/">
-            <span>Unfiltered</span>
+            <span>Slak.me</span>
           </Link>
         </h1>
         <div className="flex items-center gap-4">
