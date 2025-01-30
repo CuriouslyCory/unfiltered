@@ -6,7 +6,7 @@ import { ArtifactSection } from "./_components/artifact-section";
 
 type Props = {
   params: Promise<{ slug: string }>;
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 };
 
 export async function generateMetadata(
@@ -32,7 +32,8 @@ export async function generateMetadata(
 }
 
 export default async function Page({ params, searchParams }: Props) {
-  const slug = (await params).slug;
+  const { slug } = await params;
+  const { sections } = await searchParams;
   const document = await api.document.getBySlug({ slug });
 
   if (!document) {
@@ -47,10 +48,7 @@ export default async function Page({ params, searchParams }: Props) {
   }
 
   // Get the open sections from URL params
-  const openSections =
-    typeof searchParams.sections === "string"
-      ? searchParams.sections.split(",")
-      : [];
+  const openSections = typeof sections === "string" ? sections.split(",") : [];
 
   return (
     <div className="">

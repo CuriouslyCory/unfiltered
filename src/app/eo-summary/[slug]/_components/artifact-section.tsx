@@ -60,14 +60,12 @@ export function ArtifactSection({
       id={artifact.title.toLowerCase().replace(/\s+/g, "-")}
     >
       <CollapsibleTrigger className="w-full">
-        <div className="mb-4 flex items-center justify-start">
+        <div className="mb-4 flex items-center justify-start gap-x-2">
           <div className="flex items-center gap-x-2">
             <ChevronsUpDown className="h-4 w-4" />
             <h2 className="text-lg font-bold">{artifact.title}</h2>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
+          <div
             className="gap-2"
             onClick={(e) => {
               e.stopPropagation();
@@ -75,7 +73,7 @@ export function ArtifactSection({
             }}
           >
             <LinkIcon className="h-4 w-4" />
-          </Button>
+          </div>
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent>
