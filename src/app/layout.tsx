@@ -9,6 +9,7 @@ import { ThemeProvider } from "next-themes";
 import { Analytics } from "@vercel/analytics/react";
 import Header from "~/components/theme/header";
 import Footer from "./_components/theme/footer";
+import { Toaster } from "./_components/ui/sonner";
 
 export const metadata: Metadata = {
   title: {
@@ -54,6 +55,7 @@ export default function RootLayout({
               <main className="mx-auto">{children}</main>
               <Footer />
             </div>
+            <Toaster />
           </TRPCReactProvider>
         </ThemeProvider>
         <Analytics />

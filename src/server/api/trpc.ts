@@ -131,3 +131,27 @@ export const protectedProcedure = t.procedure
       },
     });
   });
+
+/**
+ * Admin procedure - requires user to be authenticated and have admin privileges
+ */
+export const adminProcedure = t.procedure
+  .use(timingMiddleware)
+  .use(({ ctx, next }) => {
+    if (!ctx.session || !ctx.session.user) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    if (!ctx.session.user.isAdmin) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "This action requires admin privileges",
+      });
+    }
+
+    return next({
+      ctx: {
+        session: { ...ctx.session, user: ctx.session.user },
+      },
+    });
+  });
