@@ -1,9 +1,7 @@
-import { auth } from "~/server/auth";
 import Link from "next/link";
 import { db } from "~/server/db";
 
 export default async function DocumentsPage() {
-  const session = await auth();
   const documents = await db.document.findMany({
     orderBy: { updatedAt: "desc" },
     select: {
