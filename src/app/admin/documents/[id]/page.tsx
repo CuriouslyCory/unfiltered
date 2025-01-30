@@ -9,7 +9,6 @@ export default async function DocumentEditorPage({
 }: {
   params: { id: string };
 }) {
-  const session = await auth();
   const documentId = parseInt(params.id);
 
   if (isNaN(documentId)) {
