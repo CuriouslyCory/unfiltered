@@ -109,6 +109,8 @@ export const documentRouter = createTRPCRouter({
 });
 
 const artifactOrder = [
+  "Updates",
+  "ELI5",
   "Key Points",
   "Areas of Concern",
   "Constitutional Considerations",

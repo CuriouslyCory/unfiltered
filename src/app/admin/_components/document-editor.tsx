@@ -409,7 +409,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
                       content: e.target.value,
                     })
                   }
-                  className="w-full rounded-md border-gray-700 bg-white/5 p-2"
+                  className="h-[600px] w-full rounded-md border-gray-700 bg-white/5 p-2"
                   rows={5}
                 />
               ) : (
