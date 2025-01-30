@@ -1,46 +1,20 @@
-import { ChevronsUpDown } from "lucide-react";
-import Markdown, { type Components } from "react-markdown";
-import remarkGfm from "remark-gfm";
 import type { Metadata, ResolvingMetadata } from "next";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "~/components/ui/collapsible";
 import { api } from "~/trpc/server";
 import { RiskScore } from "~/app/_components/risk-score";
 import { toTitleCase } from "~/lib/utils";
-
-// markdown overrides
-const components: Components = {
-  li: (props) => <li className="my-2" {...props} />,
-  ul: (props) => (
-    <ul className="mb-6 mt-2 list-inside list-disc pl-4" {...props} />
-  ),
-  h1: (props) => <h1 className="my-4 text-2xl font-bold" {...props} />,
-  h2: (props) => <h2 className="my-4 text-xl font-bold" {...props} />,
-  h3: (props) => <h3 className="my-4 text-lg font-bold" {...props} />,
-  h4: (props) => <h4 className="my-4 text-base font-bold" {...props} />,
-  p: (props) => <p className="my-4" {...props} />,
-  a: (props) => <a className="text-blue-500 hover:underline" {...props} />,
-};
+import { ArtifactSection } from "./_components/artifact-section";
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Record<string, string | string[] | undefined>;
 };
 
 export async function generateMetadata(
   { params }: Props,
   parent: ResolvingMetadata,
 ): Promise<Metadata> {
-  // read route params
   const slug = (await params).slug;
-
-  // fetch data
   const document = await api.document.getBySlug({ slug });
-
-  // optionally access and extend (rather than replace) parent metadata
-  // const previousImages = (await parent).openGraph?.images ?? [];
 
   return {
     title: document?.title,
@@ -57,12 +31,9 @@ export async function generateMetadata(
   };
 }
 
-export default async function Page({ params }: Props) {
+export default async function Page({ params, searchParams }: Props) {
   const slug = (await params).slug;
-
   const document = await api.document.getBySlug({ slug });
-
-  void api.document.getBySlug.prefetch({ slug });
 
   if (!document) {
     return (
@@ -74,6 +45,12 @@ export default async function Page({ params }: Props) {
       </div>
     );
   }
+
+  // Get the open sections from URL params
+  const openSections =
+    typeof searchParams.sections === "string"
+      ? searchParams.sections.split(",")
+      : [];
 
   return (
     <div className="">
@@ -112,6 +89,7 @@ export default async function Page({ params }: Props) {
           )}
         </div>
       </div>
+
       <div className="flex flex-col gap-y-6">
         <section className="flex flex-col">
           <div className="mb-4 flex items-center gap-x-2">
@@ -123,24 +101,11 @@ export default async function Page({ params }: Props) {
         </section>
 
         {document?.documentArtifact?.map((artifact) => (
-          <Collapsible key={artifact.id}>
-            <CollapsibleTrigger>
-              <div className="mb-4 flex items-center gap-x-2">
-                <ChevronsUpDown className="h-4 w-4" />
-                <h2 className="text-lg font-bold">{artifact.title}</h2>
-                <span className="text-gray-600 dark:text-gray-400">
-                  (Click to expand)
-                </span>
-              </div>
-            </CollapsibleTrigger>
-            <CollapsibleContent className="CollapsibleContent">
-              <div className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
-                <Markdown remarkPlugins={[remarkGfm]} components={components}>
-                  {artifact.content}
-                </Markdown>
-              </div>
-            </CollapsibleContent>
-          </Collapsible>
+          <ArtifactSection
+            key={artifact.id}
+            artifact={artifact}
+            isOpen={openSections.includes(artifact.title)}
+          />
         ))}
       </div>
     </div>
