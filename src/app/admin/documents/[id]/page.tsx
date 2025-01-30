@@ -1,15 +1,16 @@
-import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DocumentEditor } from "../../_components/document-editor";
 
-export default async function DocumentEditorPage({
-  params,
-}: {
-  params: { id: string };
-}) {
-  const documentId = parseInt(params.id);
+type Props = {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function DocumentEditorPage({ params }: Props) {
+  const { id } = await params;
+  const documentId = parseInt(id);
 
   if (isNaN(documentId)) {
     notFound();
