@@ -38,7 +38,7 @@ const artifactOrder = [
   "Areas of Concern",
   "Constitutional Considerations",
   "Take Action",
-  "Risk Score Justification",
+  "Risk Score Details",
   "Final Summary",
   "Original Document",
 ];
