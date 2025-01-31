@@ -1,8 +1,11 @@
 import type { Metadata, ResolvingMetadata } from "next";
 import { api } from "~/trpc/server";
-import { RiskScore } from "~/app/_components/risk-score";
 import { toTitleCase } from "~/lib/utils";
 import { ArtifactSection } from "./_components/artifact-section";
+import { artifactOrder, getArtifactByTitle } from "~/lib/document-utils";
+import { DetailsPane } from "./_components/details-pane";
+import SummarySection from "./_components/summary-section";
+import UpdatesSection from "./_components/updates-section";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -49,63 +52,30 @@ export default async function Page({ params, searchParams }: Props) {
 
   // Get the open sections from URL params
   const openSections = typeof sections === "string" ? sections.split(",") : [];
+  const updates = getArtifactByTitle(document, "Updates");
 
   return (
-    <div className="">
+    <article className="">
       <h1 className="mb-6 text-2xl font-bold">
         {toTitleCase(document?.title)}
       </h1>
-
-      <div className="mb-12 w-fit rounded-md border bg-card p-6 text-card-foreground dark:border-gray-700">
-        <div className="flex flex-col gap-x-2 gap-y-2">
-          <div className="flex items-center gap-x-2">
-            <span className="text-gray-600 dark:text-gray-400">
-              Constitutional Risk:{" "}
-            </span>
-            <RiskScore score={document?.riskScore} />
-          </div>
-          <div>
-            <span className="text-gray-600 dark:text-gray-400">Signed by:</span>{" "}
-            <span className="font-bold">{document?.signer}</span>
-          </div>
-          <div>
-            <span className="text-gray-600 dark:text-gray-400">Signed:</span>{" "}
-            <span className="font-bold">
-              {document?.dateSigned.toLocaleDateString()}
-            </span>
-          </div>
-          {document?.updatedAt.toISOString() !==
-            document?.createdAt.toISOString() && (
-            <div>
-              <span className="text-gray-600 dark:text-gray-400">
-                Last Updated:
-              </span>{" "}
-              <span className="font-bold">
-                {document?.updatedAt.toLocaleDateString()}
-              </span>
-            </div>
-          )}
-        </div>
-      </div>
-
+      <section className="mb-12 flex flex-col gap-x-6 gap-y-6 md:flex-row">
+        <DetailsPane document={document} />
+        <SummarySection document={document} />
+      </section>
+      {updates && <UpdatesSection updates={updates} />}
       <div className="flex flex-col gap-y-6">
-        <section className="flex flex-col">
-          <div className="mb-4 flex items-center gap-x-2">
-            <h2 className="text-lg font-bold">Summary</h2>
-          </div>
-          <p className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
-            {document?.shortSummary}
-          </p>
-        </section>
-
-        {document?.documentArtifact?.map((artifact) => (
-          <ArtifactSection
-            key={artifact.id}
-            artifact={artifact}
-            isOpen={openSections.includes(artifact.title)}
-          />
-        ))}
+        {artifactOrder
+          .map((title) => getArtifactByTitle(document, title))
+          .filter((artifact) => artifact !== undefined)
+          .map((artifact) => (
+            <ArtifactSection
+              key={artifact.id}
+              artifact={artifact}
+              isOpen={openSections.includes(artifact.title)}
+            />
+          ))}
       </div>
-    </div>
+    </article>
   );
 }

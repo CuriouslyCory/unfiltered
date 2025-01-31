@@ -5,6 +5,7 @@ import {
   publicProcedure,
   adminProcedure,
 } from "~/server/api/trpc";
+import { artifactOrder } from "~/lib/document-utils";
 
 export const documentRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
@@ -30,9 +31,10 @@ export const documentRouter = createTRPCRouter({
       }
       return {
         ...document,
-        documentArtifact: artifactOrder
-          .map((title) => getArtifactByTitle(document, title))
-          .filter((artifact) => artifact !== undefined),
+        documentArtifact: document.documentArtifact.sort(
+          (a, b) =>
+            artifactOrder.indexOf(a.title) - artifactOrder.indexOf(b.title),
+        ),
       };
     }),
 
@@ -107,22 +109,3 @@ export const documentRouter = createTRPCRouter({
       return true;
     }),
 });
-
-const artifactOrder = [
-  "Updates",
-  "ELI5",
-  "Key Points",
-  "Areas of Concern",
-  "Constitutional Considerations",
-  "Take Action",
-  "Risk Score Details",
-  "Final Summary",
-  "Original Document",
-];
-
-function getArtifactByTitle(
-  document: Document & { documentArtifact: DocumentArtifact[] },
-  title: string,
-) {
-  return document.documentArtifact.find((artifact) => artifact.title === title);
-}

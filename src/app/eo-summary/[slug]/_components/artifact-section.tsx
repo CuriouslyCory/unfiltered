@@ -2,8 +2,7 @@
 
 import { type DocumentArtifact } from "@prisma/client";
 import { ChevronsUpDown, Link as LinkIcon } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { toast } from "sonner";
@@ -12,7 +11,6 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "~/components/ui/collapsible";
-import { Button } from "~/components/ui/button";
 import { markdownComponents } from "~/app/_components/markdown-components";
 
 interface ArtifactSectionProps {
@@ -24,26 +22,7 @@ export function ArtifactSection({
   artifact,
   isOpen = false,
 }: ArtifactSectionProps) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(isOpen);
-
-  // Update URL when section is toggled
-  useEffect(() => {
-    const currentSections = searchParams.get("sections")?.split(",") ?? [];
-    const newSections = isCollapsibleOpen
-      ? [...new Set([...currentSections, artifact.title])]
-      : currentSections.filter((section) => section !== artifact.title);
-
-    const params = new URLSearchParams(searchParams);
-    if (newSections.length > 0) {
-      params.set("sections", newSections.join(","));
-    } else {
-      params.delete("sections");
-    }
-
-    router.replace(`?${params.toString()}`, { scroll: false });
-  }, [isCollapsibleOpen, artifact.title, router, searchParams]);
 
   const handleCopyLink = () => {
     const url = new URL(window.location.href);
