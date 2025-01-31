@@ -18,7 +18,7 @@ export async function generateMetadata(
 
   return {
     title: document?.title,
-    description: `Thoughtful Analysis of ${document?.title}`,
+    description: `Analysis of ${document?.title}. ${document?.shortSummary}`,
     keywords: document?.slug.replace(/-/g, " "),
     creator: "CuriouslyCory",
     openGraph: {
