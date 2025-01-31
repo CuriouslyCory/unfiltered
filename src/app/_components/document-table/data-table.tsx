@@ -94,7 +94,9 @@ export function DataTable<TValue>({
                     "transition-colors",
                   )}
                   onClick={() =>
-                    router.push(`/eo-summary/${row.original.slug}`)
+                    router.push(
+                      `/eo-summary/${row.original.slug}?sections=ELI5`,
+                    )
                   }
                 >
                   {row.getVisibleCells().map((cell) => (
