@@ -17,14 +17,16 @@ export default function AboutPage() {
       <section className="space-y-4 rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
         <p>
           Slak.me is dedicated to providing clear, comprehensive, and unbiased
-          analysis of executive orders and bills coming from the White House.
-          Our mission is to help citizens understand the implications of these
+          analysis of executive orders and bills coming from the White House. My
+          mission is to help citizens understand the implications of these
           important governmental actions.
         </p>
 
         <p>Each analysis examines executive orders through multiple lenses:</p>
 
         <ul className="ml-4 list-inside list-disc space-y-2">
+          <li>ELI5 (Explain it like I&quot;m 5)</li>
+          <li>Key Points</li>
           <li>Constitutional implications and concerns</li>
           <li>Potential legal challenges</li>
           <li>Real-world impacts on citizens</li>
@@ -46,8 +48,8 @@ export default function AboutPage() {
         </p>
         <section className="flex flex-col gap-y-2 rounded-md border border-black p-6 dark:border-white">
           <p>
-            Slak.me is free and I am not being paid by anyone. If you find this
-            tool useful, please consider buying me a coffee.
+            Slak.me is non-profit and I am not being paid by anyone. If you find
+            this tool useful, please consider donating to support my work.
           </p>
           <Link href="https://buymeacoffee.com/curiouslycory">
             <Button className="flex items-center gap-x-2 font-bold">

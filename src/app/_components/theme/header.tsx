@@ -24,6 +24,7 @@ export default function Header() {
             <Link href="/">Home</Link>
             <Link href="/about">About</Link>
             <Link href="/contact">Contact</Link>
+            <Link href="/faq">FAQ</Link>
           </nav>
           <ThemeToggle />
           <Button
@@ -63,6 +64,13 @@ export default function Header() {
             onClick={toggleMenu}
           >
             Contact
+          </Link>
+          <Link
+            href="/faq"
+            className="rounded-md p-2 hover:bg-accent"
+            onClick={toggleMenu}
+          >
+            FAQ
           </Link>
         </nav>
       )}

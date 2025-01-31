@@ -52,7 +52,7 @@ export default function RootLayout({
           <TRPCReactProvider>
             <div className="mx-6 flex h-screen max-w-screen-xl flex-col justify-between md:mx-12 xl:mx-auto">
               <Header />
-              <main className="mx-auto">{children}</main>
+              <main className="mx-auto w-full">{children}</main>
               <Footer />
             </div>
             <Toaster />
