@@ -6,6 +6,8 @@ import { artifactOrder, getArtifactByTitle } from "~/lib/document-utils";
 import { DetailsPane } from "./_components/details-pane";
 import SummarySection from "./_components/summary-section";
 import UpdatesSection from "./_components/updates-section";
+import { auth } from "~/server/auth";
+import Link from "next/link";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -35,6 +37,7 @@ export async function generateMetadata(
 }
 
 export default async function Page({ params, searchParams }: Props) {
+  const session = await auth();
   const { slug } = await params;
   const { sections } = await searchParams;
   const document = await api.document.getBySlug({ slug });
@@ -76,7 +79,13 @@ export default async function Page({ params, searchParams }: Props) {
             />
           ))}
       </div>
-      <span className="text-sm text-gray-500">Document Id: {document.id}</span>
+      {session && session.user.isAdmin && (
+        <Link href={`/admin/documents/${document.id}`}>
+          <span className="text-sm text-gray-500">
+            Document Id: {document.id}
+          </span>
+        </Link>
+      )}
     </article>
   );
 }
