@@ -8,12 +8,14 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   type SortingState,
+  type ColumnFiltersState,
+  getFilteredRowModel,
 } from "@tanstack/react-table";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { cn } from "~/lib/utils";
 import { type Document } from "@prisma/client";
-
+import { Input } from "~/components/ui/input";
 import {
   Table,
   TableBody,
@@ -37,6 +39,7 @@ export function DataTable<TValue>({
   pageSize = 20,
 }: DataTableProps<Document, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const router = useRouter();
 
   const table = useReactTable({
@@ -45,6 +48,8 @@ export function DataTable<TValue>({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
+    onColumnFiltersChange: setColumnFilters,
+    getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     initialState: {
       pagination: {
@@ -53,11 +58,22 @@ export function DataTable<TValue>({
     },
     state: {
       sorting,
+      columnFilters,
     },
   });
 
   return (
     <div>
+      <div className="flex items-center py-4">
+        <Input
+          placeholder="Filter documents..."
+          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
+          onChange={(event) =>
+            table.getColumn("title")?.setFilterValue(event.target.value)
+          }
+          className="max-w-sm"
+        />
+      </div>
       <div className="rounded-md border">
         <Table>
           <TableHeader className="bg-gray-200 dark:bg-gray-800">

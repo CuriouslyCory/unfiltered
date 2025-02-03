@@ -1,13 +1,22 @@
 import { z } from "zod";
-import { type Document, type DocumentArtifact } from "@prisma/client";
 import {
   createTRPCRouter,
   publicProcedure,
   adminProcedure,
 } from "~/server/api/trpc";
 import { artifactOrder } from "~/lib/document-utils";
+import { getDocumentFts } from "@prisma/client/sql";
 
 export const documentRouter = createTRPCRouter({
+  search: publicProcedure
+    .input(z.object({ query: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const documents = await ctx.db.$queryRawTyped(
+        getDocumentFts(input.query),
+      );
+      return documents;
+    }),
+
   getAll: publicProcedure.query(async ({ ctx }) => {
     const documents = await ctx.db.document.findMany({
       orderBy: {

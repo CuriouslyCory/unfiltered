@@ -2,7 +2,8 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider = "prisma-client-js"
+    provider        = "prisma-client-js"
+    previewFeatures = ["fullTextSearchPostgres", "typedSql"]
 }
 
 datasource db {
@@ -21,14 +22,16 @@ model Document {
 
     documentArtifact    DocumentArtifact[]
     title               String
-    originalDocumentUrl String             @unique
+    originalDocumentUrl String                   @unique
     shortSummary        String?
-    slug                String             @unique @default(cuid())
+    slug                String                   @unique @default(cuid())
     dateSigned          DateTime
     signer              String
     riskScore           Int?
+    search_vector       Unsupported("tsvector")?
 
     @@index([title])
+    @@index([search_vector], type: Gin)
 }
 
 model DocumentArtifact {
