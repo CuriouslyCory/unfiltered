@@ -57,6 +57,15 @@ export const documentRouter = createTRPCRouter({
         dateSigned: z.date().optional(),
         signer: z.string().optional(),
         originalDocumentUrl: z.string().optional(),
+        type: z
+          .enum([
+            "EXECUTIVE_ORDER",
+            "FACT_SHEET",
+            "REMARKS",
+            "LEGISLATION",
+            "OTHER",
+          ])
+          .optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {

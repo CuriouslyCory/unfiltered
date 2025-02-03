@@ -11,44 +11,37 @@ DECLARE
     artifact_text TEXT;
 BEGIN
     -- Get concatenated text from all artifacts for this document
-    SELECT string_agg(content, ' ')
-    INTO artifact_text
-    FROM "DocumentArtifact"
-    WHERE "documentId" = 
-        CASE 
-            WHEN TG_TABLE_NAME = 'Document' THEN NEW.id
-            WHEN TG_TABLE_NAME = 'DocumentArtifact' THEN NEW."documentId"
-        END;
+    IF TG_TABLE_NAME = 'Document' THEN
+        SELECT string_agg(content, ' ')
+        INTO artifact_text
+        FROM "DocumentArtifact"
+        WHERE "documentId" = NEW.id;
 
-    -- Update the document's search vector
-    UPDATE "Document"
-    SET "search_vector" = to_tsvector('english', 
-        CONCAT_WS(' ',
-            COALESCE(
-                CASE 
-                    WHEN TG_TABLE_NAME = 'Document' THEN NEW.title
-                    ELSE (SELECT title FROM "Document" WHERE id = NEW."documentId")
-                END, 
-            ''),
-            COALESCE(
-                CASE 
-                    WHEN TG_TABLE_NAME = 'Document' THEN NEW.signer
-                    ELSE (SELECT signer FROM "Document" WHERE id = NEW."documentId")
-                END, 
-            ''),
-            COALESCE(
-                CASE 
-                    WHEN TG_TABLE_NAME = 'Document' THEN NEW."shortSummary"
-                    ELSE (SELECT "shortSummary" FROM "Document" WHERE id = NEW."documentId")
-                END, 
-            ''),
-            COALESCE(artifact_text, '')
-        ))
-    WHERE id = 
-        CASE 
-            WHEN TG_TABLE_NAME = 'Document' THEN NEW.id
-            WHEN TG_TABLE_NAME = 'DocumentArtifact' THEN NEW."documentId"
-        END;
+        NEW."search_vector" = to_tsvector('english', 
+            CONCAT_WS(' ',
+                COALESCE(NEW.title, ''),
+                COALESCE(NEW.signer, ''),
+                COALESCE(NEW."shortSummary", ''),
+                COALESCE(NEW.type::text, ''),
+                COALESCE(artifact_text, '')
+            ));
+    ELSE
+        SELECT string_agg(content, ' ')
+        INTO artifact_text
+        FROM "DocumentArtifact"
+        WHERE "documentId" = NEW."documentId";
+
+        UPDATE "Document"
+        SET "search_vector" = to_tsvector('english', 
+            CONCAT_WS(' ',
+                title,
+                signer,
+                "shortSummary",
+                type::text,
+                COALESCE(artifact_text, '')
+            ))
+        WHERE id = NEW."documentId";
+    END IF;
 
     RETURN NEW;
 END;
@@ -57,7 +50,7 @@ $$ LANGUAGE plpgsql;
 -- CreateTrigger
 DROP TRIGGER IF EXISTS update_doc_search_tsv ON "Document";
 CREATE TRIGGER update_doc_search_tsv
-    AFTER INSERT OR UPDATE OF title, signer, "shortSummary"
+    BEFORE INSERT OR UPDATE
     ON "Document"
     FOR EACH ROW
     EXECUTE FUNCTION update_document_search_vector();
@@ -75,9 +68,10 @@ CREATE INDEX "Document_search_idx" ON "Document" USING GIN ("search_vector");
 -- Populate existing data
 UPDATE "Document" SET "search_vector" = to_tsvector('english', 
     CONCAT_WS(' ',
-        COALESCE(title, ''),
-        COALESCE(signer, ''),
-        COALESCE("shortSummary", ''),
+        title,
+        signer,
+        "shortSummary",
+        type::text,
         COALESCE((
             SELECT string_agg(content, ' ')
             FROM "DocumentArtifact"

@@ -1,12 +1,23 @@
 "use client";
 
 import { useState } from "react";
-import { type Document, type DocumentArtifact } from "@prisma/client";
+import {
+  type Document,
+  type DocumentArtifact,
+  type DocumentType,
+} from "@prisma/client";
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
 import { PlusCircle, Pencil, X, Save } from "lucide-react";
 import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 
 interface DocumentEditorProps {
   document: Document & { documentArtifact: DocumentArtifact[] };
@@ -26,6 +37,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
     dateSigned: document.dateSigned.toISOString().split("T")[0],
     signer: document.signer,
     originalDocumentUrl: document.originalDocumentUrl,
+    type: document.type,
   });
 
   const [artifactFormData, setArtifactFormData] = useState({
@@ -106,6 +118,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
       riskScore: formData.riskScore ? Number(formData.riskScore) : null,
       dateSigned: new Date(formData.dateSigned),
       shortSummary: formData.shortSummary || null,
+      type: formData.type,
     });
   };
 
@@ -223,6 +236,30 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
               className="mt-1 w-full rounded-md border-gray-700 bg-white/5 p-2"
               disabled={!isEditing}
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-400">
+              Document Type
+            </label>
+            <Select
+              value={formData.type}
+              onValueChange={(value) =>
+                setFormData({ ...formData, type: value as DocumentType })
+              }
+              disabled={!isEditing}
+            >
+              <SelectTrigger className="mt-1 w-full border-gray-700 bg-white/5">
+                <SelectValue placeholder="Select a document type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="EXECUTIVE_ORDER">Executive Order</SelectItem>
+                <SelectItem value="FACT_SHEET">Fact Sheet</SelectItem>
+                <SelectItem value="REMARKS">Remarks</SelectItem>
+                <SelectItem value="LEGISLATION">Legislation</SelectItem>
+                <SelectItem value="OTHER">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
