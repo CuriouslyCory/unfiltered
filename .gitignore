@@ -47,3 +47,4 @@ yarn-error.log*
 
 scripts/executive_orders
 scripts/processed_eos
+backups
