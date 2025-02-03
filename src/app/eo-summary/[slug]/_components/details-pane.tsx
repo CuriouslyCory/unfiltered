@@ -1,4 +1,5 @@
 import { type Document } from "@prisma/client";
+import Link from "next/link";
 import { RiskScore } from "~/app/_components/risk-score";
 
 export function DetailsPane({ document }: { document: Document }) {
@@ -30,6 +31,18 @@ export function DetailsPane({ document }: { document: Document }) {
             <span className="font-bold">
               {document?.updatedAt.toLocaleDateString()}
             </span>
+          </div>
+        )}
+        {document?.originalDocumentUrl && (
+          <div>
+            <Link
+              href={document?.originalDocumentUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-500 hover:text-blue-600 hover:underline"
+            >
+              View Original
+            </Link>
           </div>
         )}
       </div>
