@@ -9,7 +9,7 @@ export const artifactOrder = [
   "Take Action",
   // "Risk Score Details",
   "Final Summary",
-  "Original Document",
+  // "Original Document",
 ];
 
 export function getArtifactByTitle(
