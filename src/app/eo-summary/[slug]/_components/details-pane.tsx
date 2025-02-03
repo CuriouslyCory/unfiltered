@@ -1,5 +1,6 @@
 import { type Document } from "@prisma/client";
 import Link from "next/link";
+import { DocumentTypeBadge } from "~/app/_components/document-type-badge";
 import { RiskScore } from "~/app/_components/risk-score";
 
 export function DetailsPane({ document }: { document: Document }) {
@@ -33,6 +34,7 @@ export function DetailsPane({ document }: { document: Document }) {
             </span>
           </div>
         )}
+        {document.type && <DocumentTypeBadge type={document.type} />}
         {document?.originalDocumentUrl && (
           <div>
             <Link

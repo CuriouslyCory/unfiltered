@@ -14,7 +14,7 @@
     "dev": "next dev --turbo",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx}\" --cache",
-    "postinstall": "pnpm dlx prisma generate",
+    "postinstall": "pnpm dlx prisma generate --sql",
     "lint": "next lint",
     "lint:fix": "next lint --fix",
     "preview": "next build && next start",
