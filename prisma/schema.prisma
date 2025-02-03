@@ -15,6 +15,14 @@ datasource db {
     url      = env("DATABASE_URL")
 }
 
+enum DocumentType {
+    EXECUTIVE_ORDER
+    FACT_SHEET
+    REMARKS
+    LEGISLATION
+    OTHER
+}
+
 model Document {
     id        Int      @id @default(autoincrement())
     createdAt DateTime @default(now())
@@ -29,6 +37,7 @@ model Document {
     signer              String
     riskScore           Int?
     search_vector       Unsupported("tsvector")?
+    type                DocumentType             @default(OTHER)
 
     @@index([title])
     @@index([search_vector], type: Gin)

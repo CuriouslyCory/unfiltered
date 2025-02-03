@@ -40,7 +40,6 @@ export default async function Home() {
           </div>
         </div>
 
-        <h1 className="mb-6 text-2xl font-bold">Executive Order Analysis</h1>
         <DataTable columns={columns} data={documents} />
       </main>
     </HydrateClient>

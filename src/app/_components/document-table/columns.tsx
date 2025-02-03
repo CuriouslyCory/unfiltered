@@ -1,11 +1,12 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { type Document } from "@prisma/client";
+import { type DocumentType, type Document } from "@prisma/client";
 import { RiskScore } from "../risk-score";
 import { toTitleCase } from "~/lib/utils";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { DocumentTypeBadge } from "../document-type-badge";
 
 export const columns: ColumnDef<Document>[] = [
   {
@@ -69,6 +70,32 @@ export const columns: ColumnDef<Document>[] = [
     cell: ({ row }) => (
       <span className="font-medium">{toTitleCase(row.getValue("title"))}</span>
     ),
+  },
+  {
+    accessorKey: "type",
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="hidden w-full justify-start px-2 lg:flex"
+        >
+          Type
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => {
+      const type = row.getValue("type");
+      return (
+        <div className="flex justify-center">
+          <DocumentTypeBadge
+            type={type as DocumentType}
+            className="hidden lg:block"
+          />
+        </div>
+      );
+    },
   },
   {
     accessorKey: "updatedAt",
