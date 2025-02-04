@@ -58,16 +58,14 @@ export default async function Page({ params, searchParams }: Props) {
   const updates = getArtifactByTitle(document, "Updates");
 
   return (
-    <article className="">
-      <h1 className="mb-6 text-2xl font-bold">
-        {toTitleCase(document?.title)}
-      </h1>
-      <section className="mb-12 flex flex-col gap-x-6 gap-y-6 md:flex-row">
+    <article className="flex flex-col gap-y-12 pt-6">
+      <h1 className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>
+      <section className="flex flex-col gap-x-6 gap-y-6 md:flex-row">
         <DetailsPane document={document} />
         <SummarySection document={document} />
       </section>
       {updates && <UpdatesSection updates={updates} />}
-      <div className="flex flex-col gap-y-6">
+      <div className="flex flex-col gap-y-8">
         {artifactOrder
           .map((title) => getArtifactByTitle(document, title))
           .filter((artifact) => artifact !== undefined)

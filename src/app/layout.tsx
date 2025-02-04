@@ -1,6 +1,7 @@
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
+import { Roboto_Serif } from "next/font/google";
 import { type Metadata } from "next";
 
 import { TRPCReactProvider } from "~/trpc/react";
@@ -33,13 +34,19 @@ export const metadata: Metadata = {
   },
 };
 
+const cactus = Roboto_Serif({
+  subsets: ["latin"],
+  weight: ["400"],
+  variable: "--font-cactus",
+});
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable}`}
+      className={`${GeistSans.variable} ${cactus.variable}`}
       suppressHydrationWarning
     >
       <body>

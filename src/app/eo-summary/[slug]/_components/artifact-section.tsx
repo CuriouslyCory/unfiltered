@@ -42,7 +42,7 @@ export function ArtifactSection({
         <div className="mb-4 flex items-center justify-start gap-x-2">
           <div className="flex items-center gap-x-2">
             <ChevronsUpDown className="h-4 w-4" />
-            <h2 className="text-lg font-bold">{artifact.title}</h2>
+            <h2 className="text-2xl font-bold">{artifact.title}</h2>
           </div>
           <div
             className="gap-2"

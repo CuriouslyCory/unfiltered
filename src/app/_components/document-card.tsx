@@ -27,7 +27,7 @@ export function DocumentCard({ document, className }: DocumentCardProps) {
       >
         <CardHeader>
           <div className="flex items-start justify-between gap-x-4">
-            <CardTitle className="line-clamp-2 flex-1 text-base">
+            <CardTitle className="line-clamp-2 flex-1">
               {document.title}
             </CardTitle>
             <RiskScore score={document.riskScore} className="flex-shrink-0" />
