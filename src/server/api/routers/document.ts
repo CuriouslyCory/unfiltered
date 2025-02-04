@@ -8,6 +8,59 @@ import { artifactOrder } from "~/lib/document-utils";
 import { getDocumentFts } from "@prisma/client/sql";
 
 export const documentRouter = createTRPCRouter({
+  getAdjacentDocuments: publicProcedure
+    .input(z.object({ currentId: z.number() }))
+    .query(async ({ ctx, input }) => {
+      const currentDoc = await ctx.db.document.findUnique({
+        where: { id: input.currentId },
+        select: { dateSigned: true },
+      });
+
+      if (!currentDoc) {
+        throw new Error("Document not found");
+      }
+
+      const [previousDoc, nextDoc] = await Promise.all([
+        // Get the previous document (newer by date)
+        ctx.db.document.findFirst({
+          where: {
+            dateSigned: {
+              gt: currentDoc.dateSigned,
+            },
+          },
+          orderBy: {
+            dateSigned: "asc",
+          },
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+          },
+        }),
+        // Get the next document (older by date)
+        ctx.db.document.findFirst({
+          where: {
+            dateSigned: {
+              lt: currentDoc.dateSigned,
+            },
+          },
+          orderBy: {
+            dateSigned: "desc",
+          },
+          select: {
+            id: true,
+            slug: true,
+            title: true,
+          },
+        }),
+      ]);
+
+      return {
+        previous: previousDoc,
+        next: nextDoc,
+      };
+    }),
+
   search: publicProcedure
     .input(z.object({ query: z.string() }))
     .query(async ({ ctx, input }) => {
