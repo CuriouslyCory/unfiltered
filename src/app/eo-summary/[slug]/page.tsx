@@ -56,10 +56,19 @@ export default async function Page({ params, searchParams }: Props) {
   // Get the open sections from URL params
   const openSections = typeof sections === "string" ? sections.split(",") : [];
   const updates = getArtifactByTitle(document, "Updates");
+  const honestTitle = getArtifactByTitle(document, "Honest Title");
 
   return (
     <article className="flex flex-col gap-y-12 pt-6">
-      <h1 className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>
+      <div className="flex flex-col gap-y-2">
+        <h1 className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>
+        {honestTitle && (
+          <div className="flex items-baseline gap-x-2">
+            <h4 className="text-sm text-gray-500">Honest Title:</h4>
+            <h2 className="text-xl font-bold">{honestTitle.content}</h2>
+          </div>
+        )}
+      </div>
       <section className="flex flex-col gap-x-6 gap-y-6 md:flex-row">
         <DetailsPane document={document} />
         <SummarySection document={document} />

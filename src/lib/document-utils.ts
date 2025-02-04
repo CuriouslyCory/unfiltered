@@ -2,7 +2,7 @@ import { type Document, type DocumentArtifact } from "@prisma/client";
 
 export const artifactOrder = [
   // "Updates",
-  "Honest Title",
+  //"Honest Title",
   "ELI5",
   "Key Points",
   "Areas of Concern",

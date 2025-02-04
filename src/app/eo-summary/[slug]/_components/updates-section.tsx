@@ -37,7 +37,7 @@ export default function UpdatesSection({
   };
 
   return (
-    <section className="mb-12 flex flex-col rounded-md border bg-white/5 p-6">
+    <section className="flex flex-col rounded-md border bg-white/5 p-6">
       <h2 className="text-lg font-bold">Updates</h2>
       <div
         ref={contentRef}
