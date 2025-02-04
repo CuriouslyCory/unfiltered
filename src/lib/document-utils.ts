@@ -8,6 +8,7 @@ export const artifactOrder = [
   "Areas of Concern",
   "Constitutional Considerations",
   "Take Action",
+  "Social Post",
   "Letter of Concern",
   // "Risk Score Details",
   "Final Summary",
