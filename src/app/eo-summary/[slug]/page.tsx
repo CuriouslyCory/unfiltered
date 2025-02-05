@@ -88,6 +88,7 @@ export default async function Page({ params, searchParams }: Props) {
               key={artifact.id}
               artifact={artifact}
               isOpen={openSections.includes(artifact.title)}
+              documentTitle={document.title}
             />
           ))}
       </div>
