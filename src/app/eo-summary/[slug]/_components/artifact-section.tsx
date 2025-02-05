@@ -21,8 +21,6 @@ import {
   LinkedinIcon,
   TelegramIcon,
   RedditIcon,
-  EmailShareButton,
-  EmailIcon,
 } from "react-share";
 import {
   Collapsible,
@@ -60,7 +58,7 @@ function ArtifactActions({
 
   const handleResistBot = () => {
     // Example URL - you can customize this based on your needs
-    const resistBotUrl = `https://resist.bot/?text=${encodeURIComponent(artifact.content)}`;
+    const resistBotUrl = `https://t.me/resistbot`;
     window.open(resistBotUrl, "_blank");
   };
 
@@ -134,18 +132,18 @@ function ArtifactActions({
     }
 
     if (title.includes("letter") || title.includes("concern")) {
-      // return (
-      //   <div
-      //     className="cursor-pointer hover:opacity-70"
-      //     onClick={(e) => {
-      //       e.stopPropagation();
-      //       handleResistBot();
-      //     }}
-      //     title="Send via ResistBot"
-      //   >
-      //     <Send className="h-4 w-4" />
-      //   </div>
-      // );
+      return (
+        <div
+          className="cursor-pointer hover:opacity-70"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleResistBot();
+          }}
+          title="Send via ResistBot"
+        >
+          <Send className="h-4 w-4" />
+        </div>
+      );
     }
 
     return null;
