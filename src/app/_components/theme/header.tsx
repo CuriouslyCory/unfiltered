@@ -6,6 +6,14 @@ import { useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Button } from "~/components/ui/button";
 
+const navigationItems = [
+  { href: "/", label: "Home" },
+  { href: "/resources", label: "Resources" },
+  { href: "/about", label: "About" },
+  { href: "/contact", label: "Contact" },
+  { href: "/faq", label: "FAQ" },
+];
+
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -21,10 +29,11 @@ export default function Header() {
         </h1>
         <div className="flex items-center gap-4">
           <nav className="hidden items-center gap-4 md:flex">
-            <Link href="/">Home</Link>
-            <Link href="/about">About</Link>
-            <Link href="/contact">Contact</Link>
-            <Link href="/faq">FAQ</Link>
+            {navigationItems.map((item) => (
+              <Link key={item.href} href={item.href}>
+                {item.label}
+              </Link>
+            ))}
           </nav>
           <ThemeToggle />
           <Button
@@ -44,34 +53,16 @@ export default function Header() {
       </div>
       {isMenuOpen && (
         <nav className="mt-4 flex flex-col gap-2 md:hidden">
-          <Link
-            href="/"
-            className="rounded-md p-2 hover:bg-accent"
-            onClick={toggleMenu}
-          >
-            Home
-          </Link>
-          <Link
-            href="/about"
-            className="rounded-md p-2 hover:bg-accent"
-            onClick={toggleMenu}
-          >
-            About
-          </Link>
-          <Link
-            href="/contact"
-            className="rounded-md p-2 hover:bg-accent"
-            onClick={toggleMenu}
-          >
-            Contact
-          </Link>
-          <Link
-            href="/faq"
-            className="rounded-md p-2 hover:bg-accent"
-            onClick={toggleMenu}
-          >
-            FAQ
-          </Link>
+          {navigationItems.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="rounded-md p-2 hover:bg-accent"
+              onClick={toggleMenu}
+            >
+              {item.label}
+            </Link>
+          ))}
         </nav>
       )}
     </header>

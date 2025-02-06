@@ -27,6 +27,33 @@ const faqItems: FAQItem[] = [
       "Slak.me is a platform dedicated to providing clear, comprehensive, and unbiased analysis of executive orders and bills coming from the White House. Our mission is to help citizens understand the implications of these important governmental actions by breaking down complex legal documents into clear, actionable insights.",
   },
   {
+    question: "How do I use Slak.me?",
+    answer: (
+      <ul className="list-inside list-decimal space-y-2">
+        <li>
+          First and foremost, Slak.me is a tool to help you understand the
+          firehose of information coming from our government bodies. Use things
+          like our ELI5 summaries and other notes to break down the leagese and
+          understand the content in a way that allows you to make your own
+          opinions before other people tell you what to think.
+        </li>
+        <li>
+          Use the Letters of Concern and other information to send emails,
+          faxes, and letters to your representatives.
+        </li>
+        <li>
+          Use the Risk Score to quickly locate the most concerning Executive
+          Orders and Bills.
+        </li>
+      </ul>
+    ),
+  },
+  {
+    question: "What is ELI5?",
+    answer:
+      'ELI5 is an acronym for "Explain Like I\'m 5". It is a style of writing that explains complex ideas in a way that is easy to understand. We use it here to explain Executive Orders and other legal documents in a way that is easy to understand.',
+  },
+  {
     question: "How is the data gathered?",
     answer:
       "We collect data directly from official government sources, including the White House website, Congress.gov, and other authoritative sources. Our team uses AI-assisted tools to help process and analyze the large volume of information, but all final analyses are human-reviewed for accuracy and clarity.",
