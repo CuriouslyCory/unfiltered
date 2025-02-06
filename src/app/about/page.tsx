@@ -34,13 +34,13 @@ export default function AboutPage() {
         </ul>
 
         <p>
-          I believe that an informed citizenry is essential to a functioning
+          I believe that an informed populace is essential to a functioning
           democracy. By breaking down complex legal documents into clear,
           actionable insights, I aim to help everyone understand how these
           executive actions might affect their lives and communities.
         </p>
 
-        <p>
+        <p className="pb-6">
           My analyses aim to be comprehensive and understandable. The current
           administration is pushing a huge amount of data as a strategy to
           confuse and overwhelm so I believe that using AI tools to help flag
@@ -48,8 +48,8 @@ export default function AboutPage() {
         </p>
         <section className="flex flex-col gap-y-2 rounded-md border border-black p-6 dark:border-white">
           <p>
-            Slak.me is non-profit and I am not being paid by anyone. If you find
-            this tool useful, please consider donating to support my work.
+            Slak.me is not for profit and I am not being paid by anyone. If you
+            find this tool useful, please consider donating to support my work.
           </p>
           <Link href="https://buymeacoffee.com/curiouslycory">
             <Button className="flex items-center gap-x-2 font-bold">
