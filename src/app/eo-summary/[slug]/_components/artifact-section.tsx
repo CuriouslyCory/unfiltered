@@ -34,12 +34,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "~/app/_components/ui/dropdown-menu";
+import { cn } from "~/lib/utils";
 
 interface ArtifactActionsProps {
   artifact: DocumentArtifact;
   onCopyLink: () => void;
   onCopyContent: () => void;
   documentTitle: string;
+  className?: string;
 }
 
 function ArtifactActions({
@@ -47,6 +49,7 @@ function ArtifactActions({
   onCopyLink,
   onCopyContent,
   documentTitle,
+  className,
 }: ArtifactActionsProps) {
   const shareUrl = useMemo(
     () =>
@@ -150,7 +153,12 @@ function ArtifactActions({
   };
 
   return (
-    <div className="flex flex-col items-start gap-y-2 rounded-md border p-2">
+    <div
+      className={cn(
+        "flex items-start gap-2 rounded-md border p-2 md:flex-col",
+        className,
+      )}
+    >
       {commonActions}
       {getTypeSpecificActions()}
     </div>
@@ -199,19 +207,29 @@ export function ArtifactSection({
       </CollapsibleTrigger>
       <CollapsibleContent className="CollapsibleContent">
         <div className="flex items-start justify-center gap-x-2">
-          <div className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
-            <Markdown
-              remarkPlugins={[remarkGfm]}
-              components={markdownComponents}
-            >
-              {artifact.content}
-            </Markdown>
+          <div className="w-full max-w-full overflow-x-auto rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
+            <ArtifactActions
+              artifact={artifact}
+              onCopyLink={handleCopyLink}
+              onCopyContent={handleCopyContent}
+              documentTitle={documentTitle}
+              className="md:hidden"
+            />
+            <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+              <Markdown
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+              >
+                {artifact.content}
+              </Markdown>
+            </div>
           </div>
           <ArtifactActions
             artifact={artifact}
             onCopyLink={handleCopyLink}
             onCopyContent={handleCopyContent}
             documentTitle={documentTitle}
+            className="hidden md:flex"
           />
         </div>
       </CollapsibleContent>
