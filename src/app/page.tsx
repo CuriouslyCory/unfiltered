@@ -32,7 +32,7 @@ export default async function Home() {
         </div>
 
         <div className="mb-12">
-          <h2 className="mb-6 text-2xl font-bold">Critical Documents</h2>
+          <h2 className="mb-6 text-2xl font-bold">Highest Risk Score</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {highestRiskScoreDocuments.map((document) => (
               <DocumentCard key={document.id} document={document} />

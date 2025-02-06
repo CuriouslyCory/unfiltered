@@ -117,6 +117,12 @@ const faqItems: FAQItem[] = [
     answer:
       "The Risk Score is a measure of how well the executive order aligns with the Constitution. It is calculated based on the order's compliance with the Constitution and the extent to which it exceeds the President's constitutional powers.",
   },
+  {
+    question:
+      "I thought this site was supposed to be unbaised, but it seems to be pro-democrat.",
+    answer:
+      "Slak.me is a non-partisan project. Our goal is to provide clear, unbiased analysis of the executive orders and bills coming from the White House. I promise to be as critical of any Democrat administration as I am of any Republican administration. Unconsitutional is unconstitutional, no matter who is in power. Please open an issue on our GitHub repository or contact us if you find any errors or innacurate content.",
+  },
 ];
 
 export default function FAQPage() {
