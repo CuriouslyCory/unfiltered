@@ -53,12 +53,16 @@ const resources = {
   protestResources: {
     knowYourRights: [
       {
-        title: "ACLU Know Your Rights When Protesting",
+        title: "ACLU Your Rights When Protesting",
         url: "https://www.aclu.org/know-your-rights/protesters-rights",
       },
       {
         title: "National Lawyers Guild Legal Support",
         url: "https://www.nlg.org/massdefense/resources/",
+      },
+      {
+        title: "Encounters with Police or ICE",
+        url: "https://50protests.com/assets/red_card-self_srv-english.pdf",
       },
     ],
     safetyTips: [
@@ -73,11 +77,24 @@ const resources = {
       "Have a meet-up plan with your group",
     ],
   },
+  events: [
+    {
+      name: "50 Protests",
+      description: "50 Protests",
+      url: "https://50protests.com/",
+    },
+    {
+      name: "General Strike",
+      description:
+        "We’ve voted, we’ve protested, and this country still does not work on behalf of us working people. The General Strike is a grassroots network of regular people who know our greatest power is our labor and our right to refuse it. If everyone fighting for racial, economic, and environmental justice strike together, we can make real change. ",
+      url: "https://generalstrikeus.com/",
+    },
+  ],
 };
 
 export default function ResourcesPage() {
   return (
-    <div className="container mx-auto space-y-8 px-4 py-8">
+    <div className="mx-auto space-y-8 py-8">
       <div className="text-center">
         <h1 className="mb-4 font-serif text-4xl font-bold">Resources</h1>
         <p className="text-lg text-muted-foreground">
@@ -167,6 +184,29 @@ export default function ResourcesPage() {
           </CardHeader>
           <CardContent>
             <Accordion type="single" collapsible className="w-full">
+              <AccordionItem value="protest-evenets">
+                <AccordionTrigger>Events</AccordionTrigger>
+                <AccordionContent>
+                  <ul className="list-outside list-disc space-y-2">
+                    {resources.events.map((event) => (
+                      <li
+                        key={event.name}
+                        className="text-sm text-muted-foreground"
+                      >
+                        <Link
+                          href={event.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2"
+                        >
+                          {event.name}
+                          <ExternalLink className="h-4 w-4" />
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </AccordionContent>
+              </AccordionItem>
               <AccordionItem value="know-your-rights">
                 <AccordionTrigger>Know Your Rights</AccordionTrigger>
                 <AccordionContent className="space-y-4">
