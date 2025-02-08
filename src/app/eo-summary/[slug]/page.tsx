@@ -22,10 +22,12 @@ export async function generateMetadata(
   const slug = (await params).slug;
   const document = await api.document.getBySlug({ slug });
 
+  const honestTitle = getArtifactByTitle(document, "Honest Title");
+
   return {
-    title: document?.title,
+    title: honestTitle?.content ?? document?.title,
     description: `Analysis of ${document?.title}. ${document?.shortSummary}`,
-    keywords: document?.slug.replace(/-/g, " "),
+    keywords: document?.slug.replace(/-/g, ", "),
     creator: "CuriouslyCory",
     openGraph: {
       publishedTime: document?.createdAt.toISOString(),
