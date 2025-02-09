@@ -10,7 +10,7 @@ export const artifactOrder = [
   "Take Action",
   "Social Post",
   "Letter of Concern",
-  // "Risk Score Details",
+  "Risk Score Details",
   "Final Summary",
   // "Original Document",
 ];
