@@ -28,9 +28,12 @@ export const documentRouter = createTRPCRouter({
               gt: currentDoc.dateSigned,
             },
           },
-          orderBy: {
-            dateSigned: "asc",
-          },
+          orderBy: [
+            {
+              dateSigned: "asc",
+            },
+            { id: "asc" },
+          ],
           select: {
             id: true,
             slug: true,
@@ -44,9 +47,12 @@ export const documentRouter = createTRPCRouter({
               lt: currentDoc.dateSigned,
             },
           },
-          orderBy: {
-            dateSigned: "desc",
-          },
+          orderBy: [
+            {
+              dateSigned: "desc",
+            },
+            { id: "desc" },
+          ],
           select: {
             id: true,
             slug: true,
@@ -72,9 +78,12 @@ export const documentRouter = createTRPCRouter({
 
   getAll: publicProcedure.query(async ({ ctx }) => {
     const documents = await ctx.db.document.findMany({
-      orderBy: {
-        dateSigned: "desc",
-      },
+      orderBy: [
+        {
+          dateSigned: "desc",
+        },
+        { id: "desc" },
+      ],
     });
     return documents;
   }),

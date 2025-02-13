@@ -364,98 +364,100 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
             </form>
           )}
 
-          {document.documentArtifact.map((artifact) => (
-            <div
-              key={artifact.id}
-              className="rounded-lg border border-gray-700 p-4"
-            >
-              <div className="mb-2 flex items-center justify-between">
+          {document.documentArtifact
+            .sort((a, b) => a.title.localeCompare(b.title))
+            .map((artifact) => (
+              <div
+                key={artifact.id}
+                className="rounded-lg border border-gray-700 p-4"
+              >
+                <div className="mb-2 flex items-center justify-between">
+                  {editingArtifactId === artifact.id ? (
+                    <input
+                      type="text"
+                      value={artifactFormData.title}
+                      onChange={(e) =>
+                        setArtifactFormData({
+                          ...artifactFormData,
+                          title: e.target.value,
+                        })
+                      }
+                      className="rounded-md border-gray-700 bg-white/5 p-1"
+                    />
+                  ) : (
+                    <h3 className="font-medium">{artifact.title}</h3>
+                  )}
+                  <div className="flex gap-2">
+                    {editingArtifactId === artifact.id ? (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setEditingArtifactId(null);
+                            setArtifactFormData({ title: "", content: "" });
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleArtifactSave(artifact.id)}
+                          disabled={updateArtifact.isPending}
+                        >
+                          <Save className="h-4 w-4" />
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleArtifactEdit(artifact)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (
+                              window.confirm(
+                                "Are you sure you want to delete this artifact?",
+                              )
+                            ) {
+                              deleteArtifact.mutate({ id: artifact.id });
+                            }
+                          }}
+                          className="text-red-500 hover:text-red-400"
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
                 {editingArtifactId === artifact.id ? (
-                  <input
-                    type="text"
-                    value={artifactFormData.title}
+                  <textarea
+                    value={artifactFormData.content}
                     onChange={(e) =>
                       setArtifactFormData({
                         ...artifactFormData,
-                        title: e.target.value,
+                        content: e.target.value,
                       })
                     }
-                    className="rounded-md border-gray-700 bg-white/5 p-1"
+                    className="h-[600px] w-full rounded-md border-gray-700 bg-white/5 p-2"
+                    rows={5}
                   />
                 ) : (
-                  <h3 className="font-medium">{artifact.title}</h3>
+                  <pre className="whitespace-pre-wrap rounded bg-black/30 p-4 text-sm">
+                    {artifact.content}
+                  </pre>
                 )}
-                <div className="flex gap-2">
-                  {editingArtifactId === artifact.id ? (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          setEditingArtifactId(null);
-                          setArtifactFormData({ title: "", content: "" });
-                        }}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleArtifactSave(artifact.id)}
-                        disabled={updateArtifact.isPending}
-                      >
-                        <Save className="h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => handleArtifactEdit(artifact)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => {
-                          if (
-                            window.confirm(
-                              "Are you sure you want to delete this artifact?",
-                            )
-                          ) {
-                            deleteArtifact.mutate({ id: artifact.id });
-                          }
-                        }}
-                        className="text-red-500 hover:text-red-400"
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
               </div>
-
-              {editingArtifactId === artifact.id ? (
-                <textarea
-                  value={artifactFormData.content}
-                  onChange={(e) =>
-                    setArtifactFormData({
-                      ...artifactFormData,
-                      content: e.target.value,
-                    })
-                  }
-                  className="h-[600px] w-full rounded-md border-gray-700 bg-white/5 p-2"
-                  rows={5}
-                />
-              ) : (
-                <pre className="whitespace-pre-wrap rounded bg-black/30 p-4 text-sm">
-                  {artifact.content}
-                </pre>
-              )}
-            </div>
-          ))}
+            ))}
         </div>
       </section>
     </div>
