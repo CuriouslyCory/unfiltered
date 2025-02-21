@@ -27,6 +27,7 @@ export const documentRouter = createTRPCRouter({
             dateSigned: {
               gt: currentDoc.dateSigned,
             },
+            published: true,
           },
           orderBy: [
             {
@@ -46,6 +47,7 @@ export const documentRouter = createTRPCRouter({
             dateSigned: {
               lt: currentDoc.dateSigned,
             },
+            published: true,
           },
           orderBy: [
             {
@@ -76,17 +78,19 @@ export const documentRouter = createTRPCRouter({
       return documents;
     }),
 
-  getAll: publicProcedure.query(async ({ ctx }) => {
-    const documents = await ctx.db.document.findMany({
-      orderBy: [
-        {
-          dateSigned: "desc",
-        },
-        { id: "desc" },
-      ],
-    });
-    return documents;
-  }),
+  getAll: publicProcedure
+    .input(z.object({ onlyPublished: z.boolean().default(true) }))
+    .query(async ({ ctx, input }) => {
+      const documents = await ctx.db.document.findMany({
+        where: input.onlyPublished
+          ? {
+              published: true,
+            }
+          : {},
+        orderBy: [{ dateSigned: "desc" }, { id: "desc" }],
+      });
+      return documents;
+    }),
 
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
@@ -128,6 +132,7 @@ export const documentRouter = createTRPCRouter({
             "OTHER",
           ])
           .optional(),
+        published: z.boolean().optional(),
       }),
     )
     .mutation(async ({ ctx, input }) => {

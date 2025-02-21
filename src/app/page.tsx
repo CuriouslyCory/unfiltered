@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Home() {
-  const documents = await api.document.getAll();
+  const documents = await api.document.getAll({});
 
   const highestRiskScoreDocuments = [...documents]
     .sort((a, b) => (b?.riskScore ?? 0) - (a?.riskScore ?? 0))

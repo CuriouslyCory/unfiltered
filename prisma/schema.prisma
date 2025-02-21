@@ -38,6 +38,7 @@ model Document {
     riskScore           Int?
     search_vector       Unsupported("tsvector")?
     type                DocumentType             @default(OTHER)
+    published           Boolean                  @default(false)
 
     @@index([title])
     @@index([search_vector], type: Gin)

@@ -38,6 +38,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
     signer: document.signer,
     originalDocumentUrl: document.originalDocumentUrl,
     type: document.type,
+    published: document.published,
   });
 
   const [artifactFormData, setArtifactFormData] = useState({
@@ -119,6 +120,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
       dateSigned: new Date(formData.dateSigned),
       shortSummary: formData.shortSummary || null,
       type: formData.type,
+      published: formData.published,
     });
   };
 
@@ -276,6 +278,24 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
                 })
               }
               className="mt-1 w-full rounded-md border-gray-700 bg-white/5 p-2"
+              disabled={!isEditing}
+            />
+          </div>
+
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-400">
+              Published
+            </label>
+            <input
+              type="checkbox"
+              checked={formData.published}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  published: e.target.checked,
+                })
+              }
+              className="h-4 w-4 rounded border-gray-700 bg-white/5"
               disabled={!isEditing}
             />
           </div>

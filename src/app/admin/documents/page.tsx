@@ -1,16 +1,9 @@
 import Link from "next/link";
-import { db } from "~/server/db";
+
+import { api } from "~/trpc/server";
 
 export default async function DocumentsPage() {
-  const documents = await db.document.findMany({
-    orderBy: { updatedAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      updatedAt: true,
-      riskScore: true,
-    },
-  });
+  const documents = await api.document.getAll({ onlyPublished: false });
 
   return (
     <main className="container mx-auto p-4">
