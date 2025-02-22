@@ -23,7 +23,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   ];
 
-  const documents = await api.document.getAll();
+  const documents = await api.document.getAll({ onlyPublished: true });
 
   documents.forEach((document) => {
     sitemap.push({
