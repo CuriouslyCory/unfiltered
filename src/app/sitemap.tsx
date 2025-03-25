@@ -1,4 +1,4 @@
-import type { MetadataRoute } from "next";
+import { type MetadataRoute } from "next";
 import { api } from "~/trpc/server";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {

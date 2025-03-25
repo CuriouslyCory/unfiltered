@@ -1,5 +1,5 @@
 import { type DocumentType } from "@prisma/client";
-import { HTMLAttributes } from "react";
+import { type HTMLAttributes } from "react";
 import { Badge } from "~/components/ui/badge";
 import { cn } from "~/lib/utils";
 
