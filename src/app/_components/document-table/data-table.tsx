@@ -11,7 +11,7 @@ import {
   type ColumnFiltersState,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { cn } from "~/lib/utils";
 import { type Document } from "@prisma/client";
@@ -64,12 +64,30 @@ export function DataTable<TValue>({
   const [sorting, setSorting] = useState<SortingState>(() =>
       getSortingFromParams(searchParams),
   );
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
+      const search = searchParams.get("search");
+      return search ? [{ id: "title", value: search }] : [];
+  });
+  const [searchValue, setSearchValue] = useState(
+      () => searchParams.get("search") ?? "",
+  );
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync sorting state from URL on back/forward navigation
+  // Sync sorting and search state from URL on back/forward navigation
   useEffect(() => {
       const urlSorting = getSortingFromParams(searchParams);
       setSorting(urlSorting);
+
+      const urlSearch = searchParams.get("search") ?? "";
+      setSearchValue(urlSearch);
+      if (urlSearch) {
+          setColumnFilters((prev) => {
+              const other = prev.filter((f) => f.id !== "title");
+              return [...other, { id: "title", value: urlSearch }];
+          });
+      } else {
+          setColumnFilters((prev) => prev.filter((f) => f.id !== "title"));
+      }
   }, [searchParams]);
 
   const handleSortingChange = useCallback(
@@ -93,13 +111,54 @@ export function DataTable<TValue>({
       [sorting, searchParams, pathname, router],
   );
 
+  const pushSearchToUrl = useCallback(
+      (value: string) => {
+          const params = new URLSearchParams(searchParams.toString());
+          if (value) {
+              params.set("search", value);
+          } else {
+              params.delete("search");
+          }
+          router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      },
+      [searchParams, pathname, router],
+  );
+
+  const handleSearchChange = useCallback(
+      (value: string) => {
+          setSearchValue(value); // Optimistic update
+          // Apply filter immediately for responsive UI
+          if (value) {
+              setColumnFilters((prev) => {
+                  const other = prev.filter((f) => f.id !== "title");
+                  return [...other, { id: "title", value }];
+              });
+          } else {
+              setColumnFilters((prev) => prev.filter((f) => f.id !== "title"));
+          }
+
+          // Debounce URL update
+          if (debounceRef.current) {
+              clearTimeout(debounceRef.current);
+          }
+          debounceRef.current = setTimeout(() => {
+              pushSearchToUrl(value);
+          }, 300);
+      },
+      [pushSearchToUrl],
+  );
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: (updater) => {
+        setColumnFilters((prev) =>
+            typeof updater === "function" ? updater(prev) : updater,
+        );
+    },
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: handleSortingChange,
     initialState: {
@@ -118,10 +177,8 @@ export function DataTable<TValue>({
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter documents..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
-          }
+          value={searchValue}
+          onChange={(event) => handleSearchChange(event.target.value)}
           className="max-w-sm"
         />
       </div>
