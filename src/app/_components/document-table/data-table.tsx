@@ -35,6 +35,14 @@ const VALID_SORT_COLUMNS = new Set([
     "updatedAt",
 ]);
 
+function getPageIndexFromParams(searchParams: URLSearchParams): number {
+    const page = searchParams.get("page");
+    if (!page) return 0;
+    const parsed = parseInt(page, 10);
+    if (isNaN(parsed) || parsed < 1) return 0;
+    return parsed - 1; // URL is 1-indexed, table is 0-indexed
+}
+
 function getSortingFromParams(searchParams: URLSearchParams): SortingState {
     const sort = searchParams.get("sort");
     const order = searchParams.get("order");
@@ -71,9 +79,12 @@ export function DataTable<TValue>({
   const [searchValue, setSearchValue] = useState(
       () => searchParams.get("search") ?? "",
   );
+  const [pageIndex, setPageIndex] = useState(() =>
+      getPageIndexFromParams(searchParams),
+  );
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Sync sorting and search state from URL on back/forward navigation
+  // Sync sorting, search, and pagination state from URL on back/forward navigation
   useEffect(() => {
       const urlSorting = getSortingFromParams(searchParams);
       setSorting(urlSorting);
@@ -88,7 +99,11 @@ export function DataTable<TValue>({
       } else {
           setColumnFilters((prev) => prev.filter((f) => f.id !== "title"));
       }
-  }, [searchParams]);
+
+      const urlPageIndex = getPageIndexFromParams(searchParams);
+      const maxPage = Math.max(0, Math.ceil(data.length / pageSize) - 1);
+      setPageIndex(Math.min(urlPageIndex, maxPage));
+  }, [searchParams, data.length, pageSize]);
 
   const handleSortingChange = useCallback(
       (updaterOrValue: SortingState | ((old: SortingState) => SortingState)) => {
@@ -97,6 +112,7 @@ export function DataTable<TValue>({
                   ? updaterOrValue(sorting)
                   : updaterOrValue;
           setSorting(newSorting); // Optimistic update
+          setPageIndex(0); // Reset page on sort change
 
           const params = new URLSearchParams(searchParams.toString());
           if (newSorting.length > 0) {
@@ -106,6 +122,7 @@ export function DataTable<TValue>({
               params.delete("sort");
               params.delete("order");
           }
+          params.delete("page"); // Reset page on sort change
           router.push(`${pathname}?${params.toString()}`, { scroll: false });
       },
       [sorting, searchParams, pathname, router],
@@ -119,6 +136,7 @@ export function DataTable<TValue>({
           } else {
               params.delete("search");
           }
+          params.delete("page"); // Reset page on search change
           router.push(`${pathname}?${params.toString()}`, { scroll: false });
       },
       [searchParams, pathname, router],
@@ -127,6 +145,7 @@ export function DataTable<TValue>({
   const handleSearchChange = useCallback(
       (value: string) => {
           setSearchValue(value); // Optimistic update
+          setPageIndex(0); // Reset page on search change
           // Apply filter immediately for responsive UI
           if (value) {
               setColumnFilters((prev) => {
@@ -146,6 +165,21 @@ export function DataTable<TValue>({
           }, 300);
       },
       [pushSearchToUrl],
+  );
+
+  const handlePageChange = useCallback(
+      (newPageIndex: number) => {
+          setPageIndex(newPageIndex); // Optimistic update
+
+          const params = new URLSearchParams(searchParams.toString());
+          if (newPageIndex === 0) {
+              params.delete("page"); // Page 1 omits param for clean URLs
+          } else {
+              params.set("page", String(newPageIndex + 1)); // 1-indexed in URL
+          }
+          router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      },
+      [searchParams, pathname, router],
   );
 
   const table = useReactTable({
@@ -169,6 +203,10 @@ export function DataTable<TValue>({
     state: {
       sorting,
       columnFilters,
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
     },
   });
 
@@ -258,7 +296,7 @@ export function DataTable<TValue>({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.previousPage()}
+          onClick={() => handlePageChange(pageIndex - 1)}
           disabled={!table.getCanPreviousPage()}
         >
           Previous
@@ -266,7 +304,7 @@ export function DataTable<TValue>({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.nextPage()}
+          onClick={() => handlePageChange(pageIndex + 1)}
           disabled={!table.getCanNextPage()}
         >
           Next
