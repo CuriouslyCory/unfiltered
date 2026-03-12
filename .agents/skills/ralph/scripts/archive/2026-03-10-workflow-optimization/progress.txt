@@ -1,0 +1,137 @@
+## Codebase Patterns
+- Output validation: validateWorkflowOutput(workflow, content) in src/utils/output-validation.ts returns { valid, errors[] }
+- SSE streaming: use reply.hijack() to prevent Fastify from auto-closing, then write to reply.raw with writeHead() and write()
+- Clean up event listeners and intervals on request.raw 'close' event for SSE connections
+- Workflow names are defined as a const array with z.enum for Zod schema validation
+- `WorkflowSchema` uses `z.enum()` for runtime validation of workflow names
+- The `Workflow` type is inferred from `z.infer<typeof WorkflowSchema>`
+- `app.workflowEvents` (EventEmitter) is decorated onto FastifyInstance in document.ts
+- electron-log is used for logging throughout (import log from "electron-log")
+- All workflow handlers follow pattern: `handle<Name>Workflow(app: FastifyInstance, documentId: number)`
+- WorkflowEvents type in document.ts defines typed event signatures; import Workflow type from run-all.ts for event data
+- WORKFLOW_ARTIFACT_TITLE maps workflow names to DB artifact titles (enhance excluded — updates multiple artifacts)
+- Prisma compound unique: `documentId_title` on DocumentArtifact for fetching specific artifacts
+- Artifact titles: Research, Key Points, Constitutional Considerations, ELI5, Risk Score Details, Honest Title, Letter of Concern, Social Post, Take Action
+---
+
+## 2026-03-10 - US-006
+- Created src/utils/output-validation.ts with validateWorkflowOutput function
+- Checks: empty/whitespace, minimum length per workflow, maximum length for social-post (500), AI refusal prefix detection
+- Uses Workflow type from run-all.ts for type safety
+- Files changed: src/utils/output-validation.ts (new)
+- **Learnings for future iterations:**
+  - MIN_LENGTH and MAX_LENGTH use Record<Workflow, number> and Partial<Record<Workflow, number>> respectively
+  - AI refusal detection uses simple string prefix matching (startsWith)
+  - The function accepts `workflow: string` (not `Workflow`) for flexibility, casts internally
+---
+
+## 2026-03-10 - US-004
+- Emitted all 7 progress event types from handleRunAllWorkflow and executeWorkflowWithRetry
+- pipeline-started emitted at start with totalWorkflows and totalTiers
+- tier-started/tier-completed emitted around each tier's Promise.all
+- step-started/step-failed emitted inside executeWorkflowWithRetry retry loop
+- step-completed emitted after successful executeWorkflowWithRetry with actual duration
+- pipeline-completed emitted at end (both normal and abort paths)
+- Extended executeWorkflowWithRetry return type to include duration for accurate step-completed events
+- Files changed: src/routes/workflows/run-all.ts
+- **Learnings for future iterations:**
+  - executeWorkflowWithRetry already receives `app` so no signature change needed for event access
+  - Return type can be extended with intersection `WorkflowResult & { duration: number }` without affecting existing consumers
+  - completedCount tracking across parallel workflows within a tier may have race-like ordering but is fine since JS is single-threaded for the increment
+---
+
+## 2026-03-10 - US-003
+- Extended WorkflowEvents type with 7 new progress event types
+- Added: pipeline-started, tier-started, step-started, step-completed, step-failed, tier-completed, pipeline-completed
+- Each event has a typed data parameter matching the PRD specification
+- Imported Workflow type from run-all.ts for type safety in event data
+- Files changed: src/routes/document.ts
+- **Learnings for future iterations:**
+  - WorkflowEvents is a type alias (not interface), so new events are added inline
+  - The Workflow type must be exported from run-all.ts (already was)
+  - Events use string literal keys like "workflow:pipeline-started"
+---
+
+## 2026-03-10 - US-002
+- Rewrote handleRunAllWorkflow to iterate WORKFLOW_TIERS sequentially
+- Within each tier, workflows execute in parallel via Promise.all
+- abortOnFailure check runs after each tier completes, checking if any listed workflow failed
+- Return value shape unchanged: { message, documentId, results, aborted }
+- Files changed: src/routes/workflows/run-all.ts
+- **Learnings for future iterations:**
+  - The abortOnFailure array is optional on tiers; use `!` non-null assertion after checking existence
+  - tierResults from Promise.all preserves order matching tier.workflows
+  - Existing executeWorkflowWithRetry and runWorkflow functions were not modified
+---
+
+## 2026-03-10 - US-001
+- Implemented WorkflowTier type and WORKFLOW_TIERS constant with 5 tiers
+- Derived WORKFLOW_STEPS from WORKFLOW_TIERS via flatMap for backwards compatibility
+- Files changed: src/routes/workflows/run-all.ts
+- **Learnings for future iterations:**
+  - The Workflow type is used throughout for type safety; keep ALL_WORKFLOWS as the source of truth
+  - WORKFLOW_STEPS must remain exported since other code may depend on it
+  - Typecheck: `npx tsc --noEmit` (no build script configured)
+---
+
+## 2026-03-10 - US-005
+- Created SSE progress endpoint at GET /document/workflow-progress?documentId=N
+- New file: src/routes/workflow-progress.ts
+- Sets Content-Type text/event-stream, Cache-Control no-cache, Connection keep-alive
+- Listens for all workflow:* events on app.workflowEvents, filters by documentId
+- Writes SSE format: event: <name>\ndata: <JSON>\n\n
+- Sends heartbeat comment every 15 seconds
+- Cleans up listeners and interval on connection close
+- Registered route in document.ts via registerWorkflowProgressRoute(app)
+- Files changed: src/routes/workflow-progress.ts (new), src/routes/document.ts
+- **Learnings for future iterations:**
+  - reply.hijack() is required for SSE in Fastify to prevent auto-close
+  - Store listener references in an array for clean removal on close
+  - reply.raw.writeHead() sets headers for hijacked responses
+---
+
+## 2026-03-10 - US-008
+- Created src/routes/dashboard.ts with self-contained HTML dashboard page
+- GET /dashboard with optional documentId query param
+- Without documentId: shows input form to enter a document ID
+- With documentId: shows header with doc ID and pipeline status, overall progress bar (X/10), current tier indicator, grid of 10 workflow cards
+- Cards styled with colors: gray (pending), blue with pulse animation (running), green (completed), red (failed)
+- Registered route in document.ts via registerDashboardRoute(app)
+- Files changed: src/routes/dashboard.ts (new), src/routes/document.ts
+- **Learnings for future iterations:**
+  - reply.type('text/html').send(html) is the pattern for serving HTML from Fastify
+  - Dashboard HTML uses template literal with inline CSS/JS — no external dependencies
+  - The card IDs use workflow name (e.g., card-research, status-research) for JS DOM access
+---
+
+## 2026-03-10 - US-009
+- Connected dashboard to SSE endpoint for live real-time updates
+- Added EventSource connecting to /document/workflow-progress?documentId=N
+- Handles all 7 SSE event types: pipeline-started, tier-started, step-started, step-completed, step-failed, tier-completed, pipeline-completed
+- pipeline-started: sets header to "Processing...", resets progress
+- step-started: sets card to running (blue/pulse), shows attempt number on retries
+- step-completed: sets card to completed (green), shows duration, updates progress bar
+- step-failed: shows retry count if willRetry, sets to failed (red) on final failure
+- tier-started: updates current tier indicator with tier name and workflows
+- pipeline-completed: updates header to "Complete"/"Aborted", stops running animations, closes EventSource
+- Scrollable event log at bottom appends timestamped line for each event
+- Files changed: src/routes/dashboard.ts
+- **Learnings for future iterations:**
+  - EventSource addEventListener uses the full event name (e.g., 'workflow:pipeline-started') matching SSE `event:` field
+  - Use IIFE to scope dashboard JS variables and avoid polluting global scope
+  - Browser verification requires the dev server running with proper env/DB — note for manual testing
+---
+
+## 2026-03-10 - US-007
+- Integrated output validation into the pipeline in runWorkflow
+- Added WORKFLOW_ARTIFACT_TITLE mapping (9 of 10 workflows; enhance excluded)
+- After successful workflow execution, fetches artifact from DB and validates with validateWorkflowOutput
+- If validation fails, returns { success: false, error: 'Validation failed: ...' } so retry logic kicks in
+- Added validationErrors field to WorkflowResultSchema and threaded through executeWorkflowWithRetry
+- Validation failures logged with log.warn
+- Files changed: src/routes/workflows/run-all.ts
+- **Learnings for future iterations:**
+  - enhance workflow updates multiple existing artifacts (not a single new one), so it needs special handling or exclusion from validation
+  - Prisma compound unique key `documentId_title` allows direct artifact lookup without loading the full document
+  - Validation runs after DB write but before returning success, so retries get a fresh AI generation
+---

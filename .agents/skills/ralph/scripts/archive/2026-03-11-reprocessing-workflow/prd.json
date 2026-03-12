@@ -1,0 +1,413 @@
+{
+  "project": "tools-agents",
+  "branchName": "feat/ai-sdk-migration",
+  "description": "Migrate from LangChain/LangGraph to Vercel AI SDK - complete removal of all @langchain/* dependencies",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Install AI SDK packages and set up Vitest",
+      "description": "As a developer, I need AI SDK packages installed alongside LangChain and a testing framework ready so I can begin the incremental migration.",
+      "acceptanceCriteria": [
+        "Install packages: ai, @ai-sdk/google, @ai-sdk/groq, ollama-ai-provider",
+        "Install vitest as dev dependency",
+        "Add \"test\": \"vitest run\" to package.json scripts",
+        "Create vitest.config.ts with TypeScript support",
+        "Create a sample test file src/utils/__tests__/sample.test.ts that passes",
+        "Existing pnpm dev still works with both dependency sets installed",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": false,
+      "notes": "This is foundation setup only. Do NOT modify any existing code. Just add new packages and test config."
+    },
+    {
+      "id": "US-002",
+      "title": "Create AI SDK model provider layer",
+      "description": "As a developer, I need AI SDK model instances configured for all 3 providers so migrated components can use them.",
+      "acceptanceCriteria": [
+        "Create src/utils/ai-sdk-models.ts with AI SDK provider instances for all current models",
+        "Google models: google('gemini-3.1-flash-lite-preview'), google('gemini-3-flash-preview'), google('gemini-3.1-pro-preview') from @ai-sdk/google",
+        "Groq models: groq('llama-3.3-70b-versatile'), groq('deepseek-r1-distill-llama-70b'), groq('deepseek-r1-distill-qwen-32b') from @ai-sdk/groq",
+        "Ollama models: ollama('deepseek-r1:14b'), ollama('openthinker:latest') from ollama-ai-provider",
+        "Export getAISDKToolsModel() returning first available tool-enabled model",
+        "Export getAISDKReasoningModel() returning first available reasoning model",
+        "Export individual model references for direct access",
+        "Unit test in src/utils/__tests__/ai-sdk-models.test.ts verifies exports exist and functions return model instances",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": false,
+      "notes": "Mirror the structure of src/utils/ai-models.ts but with AI SDK providers. Do NOT modify the existing ai-models.ts yet. The ModelTracker adaptation will come later. For now, create simple wrapper functions. Use env vars from src/utils/loadEnv.ts for API keys (GEMINI_API_KEY, GROQ_API_KEY)."
+    },
+    {
+      "id": "US-003",
+      "title": "Migrate string and datetime tools",
+      "description": "As a developer, I need the simplest tools migrated first to establish the AI SDK tool conversion pattern.",
+      "acceptanceCriteria": [
+        "Convert src/tools/strings.ts from LangChain tool() to AI SDK tool() format",
+        "Convert src/tools/datetime.ts from LangChain tool() to AI SDK tool() format (if it exists, otherwise skip)",
+        "AI SDK tools use 'parameters' instead of 'schema', 'execute' instead of function-first argument",
+        "Tools exported as named const objects (e.g., export const stringLengthTool = tool({...}))",
+        "Remove all @langchain/core imports from converted files",
+        "Unit tests verify each tool produces correct output",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": false,
+      "notes": "Pattern: LangChain tool(fn, { name, description, schema }) becomes AI SDK tool({ description, parameters, execute }). AI SDK tools don't have a name property - names are assigned via object keys when passed to generateText. Import tool from 'ai' package."
+    },
+    {
+      "id": "US-004",
+      "title": "Migrate math tools",
+      "description": "As a developer, I need math tools migrated, replacing the LangChain community WolframAlphaTool with a direct API call.",
+      "acceptanceCriteria": [
+        "Convert additionTool, subtractionTool, multiplicationTool, divisionTool in src/tools/math.ts to AI SDK tool() format",
+        "Replace WolframAlphaTool from @langchain/community with a direct HTTP fetch to Wolfram Alpha Short Answers API (http://api.wolframalpha.com/v1/result?appid=APPID&i=QUERY)",
+        "Export all 5 tools as individual named exports AND as a mathTools record object: { wolfram_alpha: ..., addition: ..., etc }",
+        "Remove all @langchain imports from the file",
+        "Unit tests verify arithmetic tools return correct results",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": false,
+      "notes": "WOLFRAM_ALPHA_APP_ID env var is available via src/utils/loadEnv.ts. The Short Answers API is a simple GET request returning plain text."
+    },
+    {
+      "id": "US-005",
+      "title": "Migrate database tools",
+      "description": "As a developer, I need Prisma-based database lookup tools migrated to AI SDK format.",
+      "acceptanceCriteria": [
+        "Convert all 5 tools in src/tools/database.ts to AI SDK tool() format: lookupDocumentById, lookupDocumentByTitle, lookupDocumentArtifactById, lookupDocumentArtifactByDocumentIdTitle, pullFullDocumentReport",
+        "Prisma query logic inside execute functions remains unchanged",
+        "Export individual tool consts AND a documentTools record object",
+        "Remove all @langchain imports from the file",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": false,
+      "notes": "These tools access the Prisma client. Check how they currently get the prisma instance - it may be imported globally or passed via closure. Preserve the same access pattern."
+    },
+    {
+      "id": "US-006",
+      "title": "Migrate telegram, workflow, and aurora chat tools",
+      "description": "As a developer, I need the remaining simple tools migrated to AI SDK format.",
+      "acceptanceCriteria": [
+        "Convert src/tools/telegram.ts respondToTelegram tool to AI SDK tool() format",
+        "Convert src/tools/workflow.ts executeDocumentWorkflow tool to AI SDK tool() format",
+        "Convert src/tools/aurora-chat.ts tools (addChatMessage, getLatestChatMessage, triggerAuroraAgent) from DynamicStructuredTool to AI SDK tool() format",
+        "Export each file's tools as record objects",
+        "Remove all @langchain imports from these 3 files",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": false,
+      "notes": "DynamicStructuredTool from @langchain/core/tools converts the same way as regular tool(). The aurora-chat tools may use an auroraChatTools array export - convert to record object."
+    },
+    {
+      "id": "US-007",
+      "title": "Migrate search tools",
+      "description": "As a developer, I need search tools migrated, replacing LangChain community wrappers with direct API calls.",
+      "acceptanceCriteria": [
+        "Replace DuckDuckGoSearch from @langchain/community with direct use of duck-duck-scrape package (already a dependency) in src/tools/search.ts",
+        "Replace TavilySearchResults with direct HTTP fetch to Tavily REST API (POST https://api.tavily.com/search)",
+        "Replace WikipediaQueryRun with direct HTTP fetch to Wikipedia API (https://en.wikipedia.org/w/api.php)",
+        "Convert getPageContent tool wrapper to AI SDK format (Playwright logic unchanged)",
+        "Export all search tools as a researchTools record object",
+        "Remove all @langchain imports from the file",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": false,
+      "notes": "TAVILY_API_KEY env var available via loadEnv. duck-duck-scrape is already in package.json. For Wikipedia, use action=query&format=json&prop=extracts&exintro=true. SERPGoogleScholarAPITool and serpGoogleSearch are already commented out in tools/index.ts - ignore them."
+    },
+    {
+      "id": "US-008",
+      "title": "Create direct Qdrant vector store utility",
+      "description": "As a developer, I need a utility replacing @langchain/qdrant with direct @qdrant/js-client-rest calls and AI SDK embeddings.",
+      "acceptanceCriteria": [
+        "Create src/utils/vector-store.ts with a VectorStore class wrapping @qdrant/js-client-rest",
+        "Class methods: similaritySearch(query: string, k: number, filter?): returns array of { pageContent, metadata }",
+        "Class methods: addDocuments(docs: { pageContent: string, metadata: Record<string,any> }[]): adds docs with embeddings",
+        "Class methods: delete(ids: string[]): deletes points by ID",
+        "Embeddings generated via AI SDK embed()/embedMany() using ollama.embedding('nomic-embed-text') from ollama-ai-provider",
+        "Export getVectorStore(collectionName: string) factory function returning a configured VectorStore instance",
+        "Unit tests verify the class methods (mocked Qdrant client and embed calls)",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": false,
+      "notes": "QDRANT_URL env var available. Use @qdrant/js-client-rest (already a dependency) for QdrantClient. The embed() function is from the 'ai' package. The ollama.embedding() provider is from ollama-ai-provider. Match the return format of LangChain's QdrantVectorStore.similaritySearch() so downstream tools don't need changes."
+    },
+    {
+      "id": "US-009",
+      "title": "Migrate Qdrant search tools to AI SDK",
+      "description": "As a developer, I need the 3 vector search tools updated to use the new direct Qdrant utility.",
+      "acceptanceCriteria": [
+        "Convert eoVectorSearch, p2025VectorSearch, researchArtifactVectorSearch in src/tools/qdrant.ts to AI SDK tool() format",
+        "Tools use the new getVectorStore() from src/utils/vector-store.ts instead of @langchain/qdrant QdrantVectorStore",
+        "Update addDocumentToVectorStore function to use the new VectorStore utility",
+        "Export tools as a vectorSearchTools record object",
+        "Remove all @langchain imports from src/tools/qdrant.ts",
+        "Typecheck passes"
+      ],
+      "priority": 9,
+      "passes": false,
+      "notes": "The existing getVectorStore() in qdrant.ts creates QdrantVectorStore instances with OllamaEmbeddings. Replace with the new getVectorStore() from src/utils/vector-store.ts. Keep the collection names: executive_order_artifacts, p2025, research_artifacts."
+    },
+    {
+      "id": "US-010",
+      "title": "Migrate memory tools with closure pattern",
+      "description": "As a developer, I need memory tools converted to AI SDK format with userId passed via closures instead of RunnableConfig.",
+      "acceptanceCriteria": [
+        "Convert createManageMemoryTool() in src/tools/memories.ts to return AI SDK tool() instead of LangChain tool()",
+        "Convert createSearchMemoryTool() similarly",
+        "Add userId parameter to factory functions: createManageMemoryTool(namespace, options, userId)",
+        "Replace RunnableConfig-based namespace resolution with closure: use userId parameter directly in getNamespace({user_id: userId})",
+        "Update pre-instantiated exports (manageUserPreferencesTool, searchUserPreferencesTool, etc.) - these become factory functions that take userId",
+        "Use the new getVectorStore() from src/utils/vector-store.ts",
+        "Remove all @langchain imports from the file",
+        "Typecheck passes"
+      ],
+      "priority": 10,
+      "passes": false,
+      "notes": "The NamespaceTemplate class can stay as-is. The key change: instead of receiving config?.configurable in the execute function, the userId is captured at tool creation time via closure. Pre-instantiated tool exports (manageUserPreferencesTool etc.) cannot be pre-instantiated anymore since they need userId - convert them to factory functions or remove them and let agents create tools at invocation time."
+    },
+    {
+      "id": "US-011",
+      "title": "Update tool index and remove LangGraph store",
+      "description": "As a developer, I need the tool index updated to AI SDK format and the LangGraph QdrantStore removed.",
+      "acceptanceCriteria": [
+        "Update src/tools/index.ts to export Record<string, CoreTool> objects instead of arrays",
+        "Remove ToolNode, StructuredToolInterface, RunnableToolLike imports from @langchain",
+        "Import CoreTool type from 'ai' package",
+        "Export mathTools, researchTools, documentTools as record objects",
+        "Delete src/agents/store.ts (QdrantStore LangGraph BaseStore implementation)",
+        "Delete src/utils/qdrant-store.ts if it exists and is no longer needed",
+        "Update all files that import from tools/index.ts to handle the new record format",
+        "Typecheck passes"
+      ],
+      "priority": 11,
+      "passes": false,
+      "notes": "CoreTool is the AI SDK type for tools. The record format is { tool_name: tool({...}), another_tool: tool({...}) }. Consumers like agents will spread these records: tools: { ...mathTools, ...researchTools }."
+    },
+    {
+      "id": "US-012",
+      "title": "Migrate simple workflow routes batch 1",
+      "description": "As a developer, I need simple text-generation workflow routes converted to AI SDK generateText.",
+      "acceptanceCriteria": [
+        "Convert src/routes/workflows/summary.ts: model.invoke() to generateText()",
+        "Convert src/routes/workflows/key-points.ts similarly",
+        "Convert src/routes/workflows/eli5.ts similarly",
+        "Convert src/routes/workflows/honest-title.ts similarly",
+        "Convert src/routes/workflows/social-post.ts similarly",
+        "Replace SystemMessage/HumanMessage with plain { role, content } objects",
+        "Import generateText from 'ai' and models from src/utils/ai-sdk-models.ts",
+        "Remove all @langchain imports from these 5 files",
+        "Typecheck passes"
+      ],
+      "priority": 12,
+      "passes": false,
+      "notes": "Pattern: const result = await reasoningModel.invoke([new SystemMessage('...'), new HumanMessage('...')]) becomes const { text } = await generateText({ model: getAISDKReasoningModel(), system: '...', messages: [{ role: 'user', content: '...' }] }). The result.content.toString() becomes just text."
+    },
+    {
+      "id": "US-013",
+      "title": "Migrate complex workflow routes batch 2",
+      "description": "As a developer, I need the remaining text-generation workflow routes converted to AI SDK.",
+      "acceptanceCriteria": [
+        "Convert src/routes/workflows/action-plan.ts to use generateText()",
+        "Convert src/routes/workflows/resist-letter.ts similarly",
+        "Convert src/routes/workflows/constitutional-considerations.ts similarly",
+        "Convert src/routes/workflows/find-updates.ts similarly",
+        "Convert src/routes/workflows/final-summary.ts similarly",
+        "Replace all SystemMessage/HumanMessage with plain { role, content } objects",
+        "Remove all @langchain imports from these 5 files",
+        "Typecheck passes"
+      ],
+      "priority": 13,
+      "passes": false,
+      "notes": "Same conversion pattern as US-012. Some of these may use the planning agent - if so, they depend on US-019 (planning agent migration). If they call createPlanningWorkflow, leave those calls as-is for now and convert only the direct model.invoke() calls."
+    },
+    {
+      "id": "US-014",
+      "title": "Migrate agent/structured workflow routes batch 3",
+      "description": "As a developer, I need workflow routes that use structured output or inline agents converted.",
+      "acceptanceCriteria": [
+        "Convert src/routes/workflows/score.ts: model.withStructuredOutput(schema).invoke() to generateObject({ model, schema, messages })",
+        "Convert src/routes/workflows/format.ts: replace inline createReactAgent with generateText({ tools, maxSteps }), remove MemorySaver",
+        "Convert src/routes/workflows/enhance.ts: replace any direct model calls with generateText()",
+        "Convert src/routes/workflows/research.ts: replace any direct model calls with generateText()",
+        "Import generateText, generateObject from 'ai'",
+        "Remove all @langchain imports from these 4 files",
+        "Typecheck passes"
+      ],
+      "priority": 14,
+      "passes": false,
+      "notes": "score.ts uses withStructuredOutput - convert to generateObject from 'ai'. format.ts uses createReactAgent with MemorySaver for inline tool use - replace with generateText({ tools: {...}, maxSteps: 10 }). enhance.ts and research.ts may call the planning agent - leave those calls as-is for now."
+    },
+    {
+      "id": "US-015",
+      "title": "Migrate reprocessing and remaining workflow files",
+      "description": "As a developer, I need the reprocessing workflow files and remaining routes converted to AI SDK.",
+      "acceptanceCriteria": [
+        "Convert src/routes/workflows/reprocess/fact-check.ts: model.invoke() to generateText()",
+        "Convert src/routes/workflows/reprocess/voice-clarity.ts similarly",
+        "Convert src/routes/workflows/reprocess/editorial-review.ts similarly",
+        "Convert src/routes/workflows/reprocess/final-rewrite.ts similarly",
+        "Convert src/routes/workflows/reprocess/run-reprocess.ts if it has direct model calls",
+        "Convert src/routes/workflows/run-all.ts if it has direct model calls",
+        "Convert src/routes/workflows/scrape-new.ts and from-url.ts if they have model calls",
+        "Remove all @langchain imports from converted files",
+        "Typecheck passes"
+      ],
+      "priority": 15,
+      "passes": false,
+      "notes": "Reprocess files were recently created and use the pattern: getReasoningModel().getModel().invoke(). Convert to generateText({ model: getAISDKReasoningModel(), ... }). run-reprocess.ts orchestrates the pipeline and may not have direct model calls. scrape-new.ts and from-url.ts may not use LLMs at all - check before modifying."
+    },
+    {
+      "id": "US-016",
+      "title": "Build custom checkpoint persistence layer",
+      "description": "As a developer, I need a lightweight PostgreSQL message persistence layer to replace LangGraph's PostgresSaver.",
+      "acceptanceCriteria": [
+        "Create src/utils/checkpoint.ts with functions: saveCheckpoint(threadId: string, messages: CoreMessage[]): Promise<void>",
+        "Add loadCheckpoint(threadId: string): Promise<CoreMessage[]> function",
+        "Add deleteCheckpoint(threadId: string): Promise<void> function",
+        "Use existing pg pool connection from the project (same pool used by src/agents/checkpointer.ts)",
+        "Create ai_sdk_checkpoints table with columns: thread_id (text, primary key), messages (jsonb), updated_at (timestamptz)",
+        "Auto-create table on first use if it doesn't exist (CREATE TABLE IF NOT EXISTS)",
+        "Unit tests verify save, load, and delete operations with mocked pg pool",
+        "Typecheck passes"
+      ],
+      "priority": 16,
+      "passes": false,
+      "notes": "CoreMessage type is from 'ai' package. Use the pg pool pattern from src/agents/checkpointer.ts for the database connection. Do NOT modify existing LangGraph checkpoint tables."
+    },
+    {
+      "id": "US-017",
+      "title": "Migrate Research Agent",
+      "description": "As a developer, I need the Research Agent migrated from createReactAgent to generateText with maxSteps.",
+      "acceptanceCriteria": [
+        "Rewrite src/agents/research-agent.ts to use generateText() from 'ai' package",
+        "Use generateText({ model, system, messages, tools, maxSteps: 15 }) pattern",
+        "System prompt preserved from existing implementation",
+        "Tool set includes migrated math tools, research tools, and string tools (spread as record objects)",
+        "Export a runResearchAgent(prompt: string) async function returning the result text",
+        "Remove all @langchain imports",
+        "No checkpointing needed (stateless sub-agent)",
+        "Typecheck passes"
+      ],
+      "priority": 17,
+      "passes": false,
+      "notes": "The research agent is called by the planning agent as a sub-agent. It does not maintain state across invocations. Use getAISDKToolsModel() from src/utils/ai-sdk-models.ts."
+    },
+    {
+      "id": "US-018",
+      "title": "Migrate Telegram Agent",
+      "description": "As a developer, I need the Telegram Agent migrated with custom checkpointing for conversation continuity.",
+      "acceptanceCriteria": [
+        "Rewrite src/agents/telegram-agent.ts to use generateText() with AI SDK tools and maxSteps: 15",
+        "Load previous conversation from checkpoint using loadCheckpoint(threadId) before each invocation",
+        "Save updated messages (previous + new user message + assistant response) using saveCheckpoint() after each invocation",
+        "threadId derived from userId and date (matching existing pattern)",
+        "Memory tools created with userId via closure pattern (createManageMemoryTool and createSearchMemoryTool with userId param)",
+        "System prompt / personality prompt preserved via 'system' parameter in generateText()",
+        "All existing tool categories available: memory, document, math, research, workflow, telegram",
+        "Remove all @langchain imports",
+        "Typecheck passes"
+      ],
+      "priority": 18,
+      "passes": false,
+      "notes": "Uses checkpoint.ts from US-016. Memory tools from US-010 now take userId as parameter. Import all tool records and spread them: tools: { ...mathTools, ...researchTools, ...documentTools, manage_memory: createManageMemoryTool(..., userId), ... }."
+    },
+    {
+      "id": "US-019",
+      "title": "Migrate Planning Agent",
+      "description": "As a developer, I need the Planning Agent's 3-node linear StateGraph replaced with sequential function calls.",
+      "acceptanceCriteria": [
+        "Rewrite src/agents/planning-agent.ts as a plain async function with 3 sequential generateText() calls",
+        "Step 1 createPlan: generateText() with reasoning model to create a plan",
+        "Step 2 executeResearch: calls the migrated runResearchAgent() from US-017",
+        "Step 3 createOutput: generateText() with reasoning model to synthesize final output",
+        "Remove StateGraph, Annotation, START, END imports from @langchain/langgraph",
+        "State passed between steps via plain TypeScript variables",
+        "Export function returns { plan, research, result } matching current interface used by workflow routes",
+        "Remove all @langchain imports",
+        "Typecheck passes"
+      ],
+      "priority": 19,
+      "passes": false,
+      "notes": "The planning agent is used by enhance.ts and other workflow routes via createPlanningWorkflow(). Ensure the exported function signature is compatible. System prompts are in src/constants/strings.ts."
+    },
+    {
+      "id": "US-020",
+      "title": "Migrate Aurora Agent - orchestrator class",
+      "description": "As a developer, I need the Aurora Agent's 6-node StateGraph with conditional looping replaced with a custom AuroraOrchestrator class.",
+      "acceptanceCriteria": [
+        "Rewrite src/agents/aurora-agent.ts as an AuroraOrchestrator class",
+        "AuroraState interface preserved with fields: chatHistory, currentPrompt, userId, contextSearchPlan, contextSearchResults, executionPlan, executionResults, finalResponse, contextConfidence, contextSearchAttempts, toolUsage",
+        "Implement 6 methods: createContextSearchPlan(), executeContextSearch(), evaluateNeedForMoreContext(), createExecutionPlan(), executePlan(), createFinalResponse()",
+        "run() method orchestrates: step 1, then loop steps 2-3 while contextConfidence <= 5 and contextSearchAttempts < 3, then steps 4-6",
+        "Each method uses generateText() from 'ai' package",
+        "Steps 2 and 5 use generateText({ tools, maxSteps: 25 }) for tool-calling loops",
+        "Tool usage tracking via onStepFinish callback in generateText() (replaces wrapToolWithTracking())",
+        "Memory tools instantiated with userId via closure at orchestrator creation",
+        "Conversation checkpointing via saveCheckpoint/loadCheckpoint from US-016",
+        "All existing system prompts preserved for each node",
+        "Remove all @langchain imports",
+        "Typecheck passes"
+      ],
+      "priority": 20,
+      "passes": false,
+      "notes": "This is the most complex migration. The existing aurora-agent.ts has ~500 lines. The orchestrator class replaces StateGraph + Annotation + conditional edges. The conditional loop (evaluateNeedForMoreContext checks confidence score 0-9) is now a simple do/while loop. System prompts for each node are defined inline in the existing file - preserve them exactly."
+    },
+    {
+      "id": "US-021",
+      "title": "Update Aurora Chat Service integration",
+      "description": "As a developer, I need the Aurora Chat Service updated to work with the migrated Aurora Agent.",
+      "acceptanceCriteria": [
+        "Update src/services/aurora-chat.ts to invoke AuroraOrchestrator instead of the LangGraph workflow",
+        "Convert message format from LangChain HumanMessage/AIMessage/SystemMessage to AI SDK CoreMessage format",
+        "PostgreSQL notification listener logic unchanged",
+        "Error handling preserved (try/catch with error message insertion to chat)",
+        "Remove all @langchain imports from the file",
+        "Typecheck passes"
+      ],
+      "priority": 21,
+      "passes": false,
+      "notes": "The service listens for PostgreSQL notifications on aurora-interface_chat_channel, then invokes the Aurora agent. Update the invocation to create an AuroraOrchestrator instance and call run(). CoreMessage uses { role: 'user'|'assistant'|'system', content: string } format."
+    },
+    {
+      "id": "US-022",
+      "title": "Remove all LangChain dependencies",
+      "description": "As a developer, I need all LangChain packages removed after all components are migrated.",
+      "acceptanceCriteria": [
+        "Remove from package.json: @langchain/core, @langchain/community, @langchain/google-genai, @langchain/groq, @langchain/ollama, @langchain/langgraph, @langchain/langgraph-checkpoint, @langchain/langgraph-checkpoint-postgres, @langchain/qdrant, @langchain/textsplitters",
+        "Delete src/agents/checkpointer.ts (PostgresSaver wrapper - replaced by checkpoint.ts)",
+        "Delete src/utils/ai-models.ts (replaced by ai-sdk-models.ts) and update all imports across codebase",
+        "Remove LangSmith env vars (LANGSMITH_API_KEY, LANGSMITH_TRACING, LANGSMITH_ENDPOINT) from .env.example if it exists",
+        "Run pnpm install to clean lock file",
+        "Verify zero @langchain imports remain (grep -r '@langchain' src/ returns nothing)",
+        "pnpm dev starts without errors",
+        "Typecheck passes"
+      ],
+      "priority": 22,
+      "passes": false,
+      "notes": "This is the final cleanup. All prior stories must be complete. Run grep -r '@langchain' src/ to find any remaining imports. Also check for imports of the old ai-models.ts and update them to ai-sdk-models.ts. Delete src/utils/model-tracker.ts only if it was fully replaced; otherwise update it to remove LangChain types."
+    },
+    {
+      "id": "US-023",
+      "title": "End-to-end validation",
+      "description": "As a developer, I need to verify the entire system works correctly after complete migration.",
+      "acceptanceCriteria": [
+        "pnpm dev starts without errors",
+        "All Vitest tests pass (pnpm test)",
+        "Typecheck passes (npx tsc --noEmit)",
+        "No @langchain imports remain in codebase",
+        "Server responds to health check or basic route",
+        "Typecheck passes"
+      ],
+      "priority": 23,
+      "passes": false,
+      "notes": "This is a validation-only story. Do NOT make code changes unless fixing issues found during validation. Run pnpm dev, pnpm test, npx tsc --noEmit, and grep -r '@langchain' src/. If any fail, fix the issue and document what was wrong."
+    }
+  ]
+}

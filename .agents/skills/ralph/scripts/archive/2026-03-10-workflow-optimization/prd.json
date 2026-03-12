@@ -1,0 +1,163 @@
+{
+  "project": "tools-agents",
+  "branchName": "feat/workflow-optimization",
+  "description": "Workflow Pipeline Optimization - Parallel execution, SSE progress, output validation, and status dashboard",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Define workflow tier configuration",
+      "description": "As a developer, I want the tier structure defined as a clear data structure so that execution order and parallelism are easy to understand and modify.",
+      "acceptanceCriteria": [
+        "Define WorkflowTier type with fields: name (string), workflows (Workflow[]), abortOnFailure (optional Workflow[])",
+        "Define WORKFLOW_TIERS constant array with 5 tiers: Tier 0 (research, abortOnFailure), Tier 1 (key-points + constitutional-considerations), Tier 2 (enhance), Tier 3 (eli5 + score), Tier 4 (honest-title + resist-letter + social-post + action-plan)",
+        "Derive WORKFLOW_STEPS from WORKFLOW_TIERS by flattening all tier workflows (preserves backwards compat for the Workflow type)",
+        "Export WORKFLOW_TIERS and keep WORKFLOW_STEPS exported",
+        "Typecheck passes"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "File: src/routes/workflows/run-all.ts. Replace the existing WORKFLOW_STEPS as-const array with the tier-based config. Derive WORKFLOW_STEPS from tiers so the Workflow type still works."
+    },
+    {
+      "id": "US-002",
+      "title": "Rewrite handleRunAllWorkflow for tier-based parallel execution",
+      "description": "As a system operator, I want workflows within the same tier to run concurrently via Promise.all so that total processing time is reduced.",
+      "acceptanceCriteria": [
+        "handleRunAllWorkflow iterates WORKFLOW_TIERS sequentially",
+        "Within each tier, all workflows execute via Promise.all(tier.workflows.map(w => executeWorkflowWithRetry(app, documentId, w)))",
+        "After each tier, check if any workflow in abortOnFailure failed — if so, return early with aborted: true",
+        "Existing retry logic (3 attempts, 2s delay) preserved per workflow via executeWorkflowWithRetry (no changes to that function)",
+        "action-plan still gracefully handles riskScore < 4 (existing behavior, no changes needed)",
+        "Return value shape unchanged: { message, documentId, results, aborted }",
+        "Typecheck passes"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "File: src/routes/workflows/run-all.ts. Replace the for...of WORKFLOW_STEPS loop with a for...of WORKFLOW_TIERS loop. Keep executeWorkflowWithRetry and runWorkflow unchanged."
+    },
+    {
+      "id": "US-003",
+      "title": "Extend WorkflowEvents type with progress event types",
+      "description": "As a developer, I need the WorkflowEvents type to include new granular progress events so that SSE and other listeners have typed event data.",
+      "acceptanceCriteria": [
+        "Add event types to WorkflowEvents: 'workflow:pipeline-started', 'workflow:tier-started', 'workflow:step-started', 'workflow:step-completed', 'workflow:step-failed', 'workflow:tier-completed', 'workflow:pipeline-completed'",
+        "Each event type has a typed data parameter matching: pipeline-started { documentId, totalWorkflows, totalTiers }, tier-started { documentId, tierName, tierIndex, workflows }, step-started { documentId, workflow, attempt }, step-completed { documentId, workflow, duration, completedCount, totalCount }, step-failed { documentId, workflow, error, attempt, willRetry }, tier-completed { documentId, tierName, tierIndex }, pipeline-completed { documentId, results, totalDuration, aborted }",
+        "Typecheck passes"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "File: src/routes/document.ts. Extend the existing WorkflowEvents type declaration."
+    },
+    {
+      "id": "US-004",
+      "title": "Emit progress events from handleRunAllWorkflow",
+      "description": "As a system component, I want the run-all orchestrator to emit detailed progress events so that listeners can track pipeline state in real-time.",
+      "acceptanceCriteria": [
+        "Emit 'workflow:pipeline-started' at beginning of handleRunAllWorkflow with { documentId, totalWorkflows: total count from all tiers, totalTiers: WORKFLOW_TIERS.length }",
+        "Emit 'workflow:tier-started' before each tier with { documentId, tierName: tier.name, tierIndex, workflows: tier.workflows }",
+        "Emit 'workflow:step-started' at the start of each executeWorkflowWithRetry attempt with { documentId, workflow, attempt }",
+        "Emit 'workflow:step-completed' after each successful workflow with { documentId, workflow, duration, completedCount, totalCount }",
+        "Emit 'workflow:step-failed' after each failed attempt with { documentId, workflow, error, attempt, willRetry: attempts < MAX_RETRIES }",
+        "Emit 'workflow:tier-completed' after each tier finishes with { documentId, tierName, tierIndex }",
+        "Emit 'workflow:pipeline-completed' at end with { documentId, results, totalDuration, aborted }",
+        "Events emitted via app.workflowEvents.emit()",
+        "Typecheck passes"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "File: src/routes/workflows/run-all.ts. handleRunAllWorkflow already receives app (FastifyInstance) which has workflowEvents. Add emit calls at appropriate points. The step-started/step-failed events require modifying executeWorkflowWithRetry to accept app as a parameter."
+    },
+    {
+      "id": "US-005",
+      "title": "Create SSE progress endpoint",
+      "description": "As a frontend client, I want to subscribe to a Server-Sent Events stream so that I receive real-time workflow progress updates for a specific document.",
+      "acceptanceCriteria": [
+        "New file src/routes/workflow-progress.ts exports a Fastify plugin function that registers the route",
+        "Route: GET /document/workflow-progress with required query param documentId (number)",
+        "Response headers: Content-Type text/event-stream, Cache-Control no-cache, Connection keep-alive",
+        "Listen on app.workflowEvents for all 'workflow:*' events, filter by matching documentId",
+        "Write each matching event as SSE format: 'event: <event-name>\\ndata: <JSON>\\n\\n'",
+        "Send heartbeat comment (': heartbeat\\n\\n') every 15 seconds via setInterval",
+        "Clean up event listeners and heartbeat interval when request is closed (request.raw.on('close'))",
+        "Register this route in src/routes/document.ts",
+        "Typecheck passes"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Use reply.raw.write() for streaming. Call reply.hijack() to prevent Fastify from auto-closing the response. Register in document.ts alongside existing routes."
+    },
+    {
+      "id": "US-006",
+      "title": "Create output validation utility",
+      "description": "As a developer, I want a validation function that checks AI-generated content for common failure modes so that bad outputs are caught before storing.",
+      "acceptanceCriteria": [
+        "New file src/utils/output-validation.ts",
+        "Export function validateWorkflowOutput(workflow: string, content: string): { valid: boolean, errors: string[] }",
+        "Check content is not empty or whitespace-only",
+        "Check content meets minimum length per workflow: research 100, key-points 100, constitutional-considerations 100, enhance 50, eli5 100, score 20, honest-title 10, resist-letter 100, social-post 20, action-plan 50",
+        "Check for maximum length on social-post (500 chars)",
+        "Detect AI refusal patterns: content starting with 'I cannot', 'I\\'m sorry', 'As an AI', 'I apologize'",
+        "Return { valid: true, errors: [] } when all checks pass",
+        "Return { valid: false, errors: ['Content too short (23 chars, minimum 100)'] } style messages on failure",
+        "Typecheck passes"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "Keep validation lightweight — heuristic checks only, no LLM calls. Import the Workflow type from run-all.ts for type safety."
+    },
+    {
+      "id": "US-007",
+      "title": "Integrate output validation into pipeline",
+      "description": "As a system operator, I want failed validation to trigger retries so that stored artifacts meet quality standards.",
+      "acceptanceCriteria": [
+        "Add optional validationErrors field (string[]) to WorkflowResultSchema in run-all.ts",
+        "In runWorkflow function: after successful workflow execution, fetch the artifact content from DB and call validateWorkflowOutput",
+        "If validation fails, return { success: false, error: 'Validation failed: ' + errors.join(', ') } so retry logic kicks in",
+        "In executeWorkflowWithRetry: include validationErrors in the returned WorkflowResult when validation caused the failure",
+        "Log validation failures with log.warn including the specific errors",
+        "Typecheck passes"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": "File: src/routes/workflows/run-all.ts. The runWorkflow function needs to know which artifact title corresponds to each workflow to fetch it. Use a mapping constant or fetch the most recently updated artifact for the document."
+    },
+    {
+      "id": "US-008",
+      "title": "Create status dashboard HTML and route",
+      "description": "As a system operator, I want a web dashboard page that displays workflow pipeline progress in real-time.",
+      "acceptanceCriteria": [
+        "New file src/routes/dashboard.ts that exports a Fastify plugin registering GET /dashboard",
+        "Route accepts optional query param documentId (number)",
+        "Returns self-contained HTML with inline CSS and JS (no external dependencies)",
+        "HTML includes: header with document ID and pipeline status text, overall progress bar showing X/10 complete, current tier name indicator",
+        "HTML includes: grid of 10 workflow cards (one per workflow) each showing workflow name, status text, and duration",
+        "Cards styled with colors: gray background for pending, blue with CSS pulse animation for running, green for completed, red for failed",
+        "Register this route in src/routes/document.ts or src/index.ts",
+        "Typecheck passes"
+      ],
+      "priority": 8,
+      "passes": true,
+      "notes": "Export dashboard HTML as a template literal string. Use a simple Fastify route handler: reply.type('text/html').send(html). Keep CSS/JS inline in the HTML string."
+    },
+    {
+      "id": "US-009",
+      "title": "Connect dashboard to SSE for live updates",
+      "description": "As a system operator, I want the dashboard to connect to the SSE endpoint and update workflow cards in real-time.",
+      "acceptanceCriteria": [
+        "Dashboard JS creates EventSource connecting to /document/workflow-progress?documentId=N",
+        "On pipeline-started event: update header to show 'Processing...' status",
+        "On workflow-started event: set matching card to 'running' state (blue/pulse)",
+        "On workflow-completed event: set matching card to 'completed' (green), show duration, update progress bar count",
+        "On workflow-failed event: if willRetry show retry count on card, if final failure set card to 'failed' (red)",
+        "On tier-started event: update current tier indicator text",
+        "On pipeline-completed event: update header to 'Complete' or 'Aborted', stop any remaining animations",
+        "Scrollable event log div at bottom that appends a text line for each received event",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 9,
+      "passes": true,
+      "notes": "This modifies the HTML template in src/routes/dashboard.ts. Add JS event handlers for each SSE event type. Use document.getElementById to update card elements by workflow name."
+    }
+  ]
+}
