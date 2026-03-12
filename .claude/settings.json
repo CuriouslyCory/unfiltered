@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx prisma generate)",
+      "WebFetch(domain:authjs.dev)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm lint)",
+      "Bash(pnpm lint:fix)",
+      "Bash(gh pr view *)",
+      "Bash(git ls-files *)",
+      "Bash(git pull:*)",
+      "Bash(git branch:*)",
+      "Bash(grep:*)",
+      "Bash(ls /home/curiouslycory/workspace/active-personal/tools-agents*)",
+      "WebFetch(domain:platejs.org)",
+      "WebFetch(domain:www.npmjs.com)",
+      "WebFetch(domain:ai-sdk.dev)",
+      "Bash(find:*)",
+      "Skill(dev-browser:dev-browser)",
+      "Bash(pnpm install)",
+      "Bash(pnpm build)",
+      "Bash(gh auth:*)",
+      "Bash(gh pr:*)",
+      "Bash(ls -la /home/curiouslycory/workspace/active-personal/tools-agents*)",
+      "Bash(find /home/curiouslycory/workspace/active-personal/tools-agents*)",
+      "WebSearch"
+    ]
+  }
+}

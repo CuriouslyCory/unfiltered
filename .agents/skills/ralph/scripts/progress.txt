@@ -1,0 +1,158 @@
+# Ralph Progress Log
+Started: Wed Mar 11 05:49:23 PM MST 2026
+---
+
+## Codebase Patterns
+- Project uses ESM (`"type": "module"`) with `tsx` for dev, TypeScript target ES2024
+- Path alias `~/*` maps to `./src/*` in tsconfig
+- Formatting uses 4-space indentation (prettier `--tab-width 4`)
+- Pre-existing `model-tracker.test.ts` is an example file, not a real test - excluded in vitest config
+- Zod updated to 3.25.x to satisfy both AI SDK (`^3.25.76`) and LangChain (`^3.24.x`) peer deps
+- esbuild added to `pnpm.onlyBuiltDependencies` for vitest support
+- `@ai-sdk/google` v3.x: use `createGoogleGenerativeAI({ apiKey })` factory, not `google(model, { apiKey })` - the `google()` shorthand only takes model ID
+- `@ai-sdk/groq`: use `createGroq({ apiKey })` factory for API key configuration
+- vitest path aliases: add `resolve.alias` in vitest.config.ts to match tsconfig `~/*` path alias
+- AI SDK v6 tool() uses `inputSchema` (not `parameters`) and `execute` - the `parameters` field is from older v3 API
+- AI SDK Tool type has `execute` as optional - use `!` non-null assertion in tests when calling `tool.execute!()`
+- Convert LangChain array exports (e.g., `dateTimeTools = [...]`) to record objects (e.g., `dateTimeTools = { name: tool, ... }`)
+- Tools imported in `src/tools/index.ts` need `as unknown as StructuredToolInterface` casts until US-011 migrates index.ts
+- For mocking PrismaClient in vitest, use `vi.hoisted()` to define mock instances so they're available in hoisted `vi.mock()` factories
+- PrismaClient must be mocked as a class (not plain object) since `database.ts` uses `new PrismaClient()`
+- LangChain `config?.configurable` pattern (RunnableConfig) has no AI SDK equivalent - convert configurable fields to explicit tool input parameters
+- DynamicStructuredTool converts identically to regular tool(): `func` → `execute`, `schema` → `inputSchema`
+- LangChain community tool class instances (e.g., DuckDuckGoSearch, WikipediaQueryRun) need full reimplementation with direct API calls, not just format conversion
+- `duck-duck-scrape` package: use `search(query, { safeSearch })` - returns `{ results: [{ title, url, description }] }`
+- `ollama-ai-provider` 1.x exports `EmbeddingModelV1` but AI SDK v6 `embed()`/`embedMany()` expects `EmbeddingModel` (V2/V3) - use `as unknown as EmbeddingModel` cast
+- Mock QdrantClient as a class (not vi.fn()) in vitest since it's instantiated with `new`
+- When removing the old `getVectorStore` from qdrant.ts, re-export the new one from `~/utils/vector-store` since `memories.ts` imports it from `./qdrant`
+- VectorStore.delete() accepts both `string[]` and `{ ids: string[] }` for backward compat with LangChain callers
+
+## 2026-03-11 17:50 - US-001
+- Installed AI SDK packages: ai, @ai-sdk/google, @ai-sdk/groq, ollama-ai-provider
+- Installed vitest as dev dependency
+- Updated zod from 3.24.2 to 3.25.76 to satisfy peer deps for both AI SDK and LangChain
+- Added `"test": "vitest run"` to package.json scripts
+- Created vitest.config.ts with TypeScript support, excluding legacy model-tracker.test.ts
+- Created src/utils/__tests__/sample.test.ts with passing tests
+- Added esbuild to pnpm.onlyBuiltDependencies
+- Files changed: package.json, pnpm-lock.yaml, vitest.config.ts, src/utils/__tests__/sample.test.ts
+- **Learnings for future iterations:**
+  - `model-tracker.test.ts` in src/utils/ is NOT a real test file - it's an example/reference file with no test suites. Excluded in vitest config.
+  - AI SDK 6.x requires zod ^3.25.76, while LangChain packages need ^3.23-24.x. Zod 3.25.x satisfies both.
+  - vitest needs esbuild build scripts approved via pnpm.onlyBuiltDependencies
+---
+
+## 2026-03-11 17:53 - US-002
+- Created src/utils/ai-sdk-models.ts with AI SDK provider instances for all 8 models (3 Google, 3 Groq, 2 Ollama)
+- Exported getAISDKToolsModel() and getAISDKReasoningModel() helper functions
+- Created src/utils/__tests__/ai-sdk-models.test.ts with 5 passing tests
+- Updated vitest.config.ts with path alias resolution for `~/*`
+- Files changed: src/utils/ai-sdk-models.ts, src/utils/__tests__/ai-sdk-models.test.ts, vitest.config.ts
+- **Learnings for future iterations:**
+  - `@ai-sdk/google` v3.x does NOT accept apiKey as second arg to `google()` - must use `createGoogleGenerativeAI({ apiKey })` factory
+  - `@ai-sdk/groq` similarly uses `createGroq({ apiKey })` factory
+  - vitest needs `resolve.alias` in config to support tsconfig path aliases like `~/*`
+  - Mock `~/utils/loadEnv` in tests with `vi.mock()` before importing modules that depend on env vars
+---
+
+## 2026-03-11 17:56 - US-003
+- Converted src/tools/strings.ts from LangChain tool() to AI SDK tool() format
+- Converted src/tools/datetime.ts from LangChain tool() to AI SDK tool() format
+- Changed dateTimeTools from array export to record object export
+- Created unit tests: src/tools/__tests__/strings.test.ts and src/tools/__tests__/datetime.test.ts
+- Files changed: src/tools/strings.ts, src/tools/datetime.ts, src/tools/__tests__/strings.test.ts, src/tools/__tests__/datetime.test.ts
+- **Learnings for future iterations:**
+  - AI SDK v6 `tool()` uses `inputSchema` field, NOT `parameters` (which was the v3 API). The PRD notes were wrong about this.
+  - `tool()` in AI SDK v6 is just an identity function for type inference - it doesn't transform the object
+  - Tool type's `execute` property is typed as optional, so tests need `!` non-null assertion
+  - For empty parameters (no input), use `inputSchema: z.object({})`
+---
+
+## 2026-03-11 17:58 - US-004
+- Converted all 4 arithmetic tools (addition, subtraction, multiplication, division) to AI SDK tool() format
+- Replaced WolframAlphaTool from @langchain/community with direct HTTP fetch to Wolfram Alpha Short Answers API
+- Exported mathTools record object: { wolfram_alpha, addition, subtraction, multiplication, division }
+- Added type assertions in src/tools/index.ts for compatibility with existing LangChain type system (pending US-011)
+- Created unit tests: src/tools/__tests__/math.test.ts (7 tests)
+- Files changed: src/tools/math.ts, src/tools/index.ts, src/tools/__tests__/math.test.ts
+- **Learnings for future iterations:**
+  - When migrating tools that are imported in index.ts, you need to add `as unknown as StructuredToolInterface` casts since index.ts still uses LangChain types until US-011
+  - WolframAlphaTool replacement is straightforward: the Short Answers API is just a GET request returning plain text
+  - The wolframAlphaTool now takes a `query` string parameter instead of being a class instance
+---
+
+## 2026-03-11 18:01 - US-005
+- Converted all 5 database tools to AI SDK tool() format: lookupDocumentByTitle, lookupDocumentById, lookupDocumentArtifactByDocumentIdTitle, lookupDocumentArtifactById, pullFullDocumentReport
+- Added documentTools record object export with all 5 tools
+- Preserved getArtifactByTitle helper function and prisma export
+- Added `as unknown as StructuredToolInterface` casts in index.ts for compatibility
+- Created unit tests: src/tools/__tests__/database.test.ts (6 tests)
+- Files changed: src/tools/database.ts, src/tools/index.ts, src/tools/__tests__/database.test.ts
+- **Learnings for future iterations:**
+  - Use `vi.hoisted()` to define mock instances that need to be referenced inside `vi.mock()` factories — vitest hoists `vi.mock()` calls above all other code
+  - PrismaClient must be mocked as a class, not a plain object, since database.ts uses `new PrismaClient()`
+  - The database tools use a globally instantiated `prisma` export — this pattern is preserved in the migration
+---
+
+## 2026-03-11 18:03 - US-006
+- Converted src/tools/telegram.ts from LangChain tool() to AI SDK tool() format
+- Converted src/tools/workflow.ts from LangChain tool() to AI SDK tool() format
+- Converted src/tools/aurora-chat.ts from DynamicStructuredTool to AI SDK tool() format (4 tools: addChatMessage, getLatestChatMessage, triggerAuroraAgent, checkConnection)
+- Exported record objects: telegramTools, workflowTools, auroraChatTools
+- Updated index.ts to also export checkConnectionTool
+- Created unit tests: telegram.test.ts (3), workflow.test.ts (2), aurora-chat.test.ts (5)
+- Files changed: src/tools/telegram.ts, src/tools/workflow.ts, src/tools/aurora-chat.ts, src/tools/index.ts, src/tools/__tests__/telegram.test.ts, src/tools/__tests__/workflow.test.ts, src/tools/__tests__/aurora-chat.test.ts
+- **Learnings for future iterations:**
+  - DynamicStructuredTool converts identically to regular tool(): `func` becomes `execute`, `schema` becomes `inputSchema`
+  - workflow.ts had `config?.configurable` for chatId/messageId (LangChain RunnableConfig pattern) - converted to explicit input parameters in the schema since AI SDK tools don't have a config mechanism
+  - aurora-chat.ts had 4 tools not 3 (checkConnectionTool was also present) - always read the full file
+---
+
+## 2026-03-11 18:06 - US-007
+- Replaced DuckDuckGoSearch from @langchain/community with direct `duck-duck-scrape` package (`search()` function with `SafeSearchType.MODERATE`)
+- Replaced TavilySearchResults with direct HTTP POST to `https://api.tavily.com/search`
+- Replaced WikipediaQueryRun with direct HTTP calls to Wikipedia API (two-step: search then extract)
+- Converted serpGoogleSearch and getPageContent to AI SDK tool() format
+- Removed googleScholarSearch export (was already commented out in index.ts)
+- Exported `researchTools` record object from search.ts
+- Added `as unknown as StructuredToolInterface` casts in index.ts for search tools (pending US-011)
+- Created unit tests: src/tools/__tests__/search.test.ts (7 tests)
+- Files changed: src/tools/search.ts, src/tools/index.ts, src/tools/__tests__/search.test.ts
+- **Learnings for future iterations:**
+  - `duck-duck-scrape` API: `search(query, { safeSearch: SafeSearchType.MODERATE })` returns `{ results: [{ title, url, description }] }`
+  - Wikipedia API needs two calls: first search (`list=search`) to get titles, then extract (`prop=extracts&exintro=true&explaintext=true`) for content
+  - Tavily REST API: POST to `https://api.tavily.com/search` with `{ api_key, query, max_results }` body
+  - Search tools that were LangChain class instances (DuckDuckGoSearch, WikipediaQueryRun, TavilySearchResults) need full reimplementation, not just format conversion
+---
+
+## 2026-03-11 18:09 - US-008
+- Created src/utils/vector-store.ts with VectorStore class wrapping @qdrant/js-client-rest
+- Implements similaritySearch(), addDocuments(), delete() methods
+- Uses AI SDK embed()/embedMany() with ollama.embedding('nomic-embed-text') for embeddings
+- Returns { pageContent, metadata } format matching LangChain's QdrantVectorStore.similaritySearch()
+- Exported getVectorStore(collectionName) factory function
+- Created src/utils/__tests__/vector-store.test.ts (6 tests)
+- Files changed: src/utils/vector-store.ts, src/utils/__tests__/vector-store.test.ts
+- **Learnings for future iterations:**
+  - ollama-ai-provider 1.x exports EmbeddingModelV1, but AI SDK v6 embed()/embedMany() expects EmbeddingModel (V2/V3) — need `as unknown as EmbeddingModel` cast
+  - QdrantClient must be mocked as a class in vitest (same pattern as PrismaClient) since it's instantiated with `new`
+  - Qdrant search results store payload as `{ pageContent, metadata }` — map from payload fields to match LangChain's return format
+  - addDocuments generates UUIDs via crypto.randomUUID() for point IDs
+---
+
+## 2026-03-11 18:12 - US-009
+- Converted eoVectorSearch, p2025VectorSearch, researchArtifactVectorSearch to AI SDK tool() format
+- Replaced old LangChain getVectorStore() with new getVectorStore() from ~/utils/vector-store
+- Replaced RecursiveCharacterTextSplitter with inline splitText() function (only used in this file)
+- Updated addDocumentToVectorStore to use new VectorStore utility
+- Exported vectorSearchTools record object with all 3 search tools
+- Re-exported getVectorStore from qdrant.ts for backward compat with memories.ts
+- Updated VectorStore.delete() to accept both `string[]` and `{ ids: string[] }` signatures
+- Added type casts in index.ts for qdrant tools (pending US-011)
+- Created unit tests: src/tools/__tests__/qdrant.test.ts (7 tests)
+- Files changed: src/tools/qdrant.ts, src/tools/index.ts, src/utils/vector-store.ts, src/tools/__tests__/qdrant.test.ts
+- **Learnings for future iterations:**
+  - memories.ts imports getVectorStore from ./qdrant — when migrating qdrant.ts, re-export the new utility to avoid breaking it
+  - LangChain's QdrantVectorStore.delete() uses `{ ids: [...] }` object arg; our VectorStore.delete() now accepts both forms
+  - RecursiveCharacterTextSplitter from @langchain/textsplitters is only used in qdrant.ts — simple inline replacement suffices
+---
