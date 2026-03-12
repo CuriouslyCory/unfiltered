@@ -27,13 +27,15 @@ import {
 
 import { Button } from "~/components/ui/button";
 
-const VALID_SORT_COLUMNS = new Set([
+const DEFAULT_VALID_SORT_COLUMNS = new Set([
     "dateSigned",
     "riskScore",
     "title",
     "type",
     "updatedAt",
 ]);
+
+const DEFAULT_SORT: SortingState = [{ id: "dateSigned", desc: true }];
 
 function getPageIndexFromParams(searchParams: URLSearchParams): number {
     const page = searchParams.get("page");
@@ -43,34 +45,44 @@ function getPageIndexFromParams(searchParams: URLSearchParams): number {
     return parsed - 1; // URL is 1-indexed, table is 0-indexed
 }
 
-function getSortingFromParams(searchParams: URLSearchParams): SortingState {
+function getSortingFromParams(
+    searchParams: URLSearchParams,
+    validColumns: Set<string>,
+    defaultSort: SortingState,
+): SortingState {
     const sort = searchParams.get("sort");
     const order = searchParams.get("order");
 
-    if (sort && VALID_SORT_COLUMNS.has(sort)) {
+    if (sort && validColumns.has(sort)) {
         return [{ id: sort, desc: order !== "asc" }];
     }
 
-    return [{ id: "dateSigned", desc: true }];
+    return defaultSort;
 }
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSize?: number;
+  onRowClick?: (row: Document) => void;
+  validSortColumns?: Set<string>;
+  defaultSort?: SortingState;
 }
 
 export function DataTable<TValue>({
   columns,
   data,
   pageSize = 20,
+  onRowClick,
+  validSortColumns = DEFAULT_VALID_SORT_COLUMNS,
+  defaultSort = DEFAULT_SORT,
 }: DataTableProps<Document, TValue>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
 
   const [sorting, setSorting] = useState<SortingState>(() =>
-      getSortingFromParams(searchParams),
+      getSortingFromParams(searchParams, validSortColumns, defaultSort),
   );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
       const search = searchParams.get("search");
@@ -86,7 +98,7 @@ export function DataTable<TValue>({
 
   // Sync sorting, search, and pagination state from URL on back/forward navigation
   useEffect(() => {
-      const urlSorting = getSortingFromParams(searchParams);
+      const urlSorting = getSortingFromParams(searchParams, validSortColumns, defaultSort);
       setSorting(urlSorting);
 
       const urlSearch = searchParams.get("search") ?? "";
@@ -256,9 +268,11 @@ export function DataTable<TValue>({
                     "transition-colors",
                   )}
                   onClick={() =>
-                    router.push(
-                      `/eo-summary/${row.original.slug}?sections=ELI5`,
-                    )
+                    onRowClick
+                      ? onRowClick(row.original)
+                      : router.push(
+                          `/eo-summary/${row.original.slug}?sections=ELI5`,
+                        )
                   }
                 >
                   {row.getVisibleCells().map((cell) => (

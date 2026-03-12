@@ -24,6 +24,9 @@
       "Bash(ls -la /home/curiouslycory/workspace/active-personal/tools-agents*)",
       "Bash(find /home/curiouslycory/workspace/active-personal/tools-agents*)",
       "WebSearch"
+    ],
+    "additionalDirectories": [
+      "/home/curiouslycory/workspace/active-personal/unfiltered"
     ]
   }
 }
