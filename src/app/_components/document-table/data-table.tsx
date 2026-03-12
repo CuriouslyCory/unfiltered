@@ -11,8 +11,8 @@ import {
   type ColumnFiltersState,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useEffect } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { cn } from "~/lib/utils";
 import { type Document } from "@prisma/client";
 import { Input } from "~/components/ui/input";
@@ -27,6 +27,25 @@ import {
 
 import { Button } from "~/components/ui/button";
 
+const VALID_SORT_COLUMNS = new Set([
+    "dateSigned",
+    "riskScore",
+    "title",
+    "type",
+    "updatedAt",
+]);
+
+function getSortingFromParams(searchParams: URLSearchParams): SortingState {
+    const sort = searchParams.get("sort");
+    const order = searchParams.get("order");
+
+    if (sort && VALID_SORT_COLUMNS.has(sort)) {
+        return [{ id: sort, desc: order !== "asc" }];
+    }
+
+    return [{ id: "dateSigned", desc: true }];
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
@@ -38,9 +57,41 @@ export function DataTable<TValue>({
   data,
   pageSize = 20,
 }: DataTableProps<Document, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
+
+  const [sorting, setSorting] = useState<SortingState>(() =>
+      getSortingFromParams(searchParams),
+  );
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+
+  // Sync sorting state from URL on back/forward navigation
+  useEffect(() => {
+      const urlSorting = getSortingFromParams(searchParams);
+      setSorting(urlSorting);
+  }, [searchParams]);
+
+  const handleSortingChange = useCallback(
+      (updaterOrValue: SortingState | ((old: SortingState) => SortingState)) => {
+          const newSorting =
+              typeof updaterOrValue === "function"
+                  ? updaterOrValue(sorting)
+                  : updaterOrValue;
+          setSorting(newSorting); // Optimistic update
+
+          const params = new URLSearchParams(searchParams.toString());
+          if (newSorting.length > 0) {
+              params.set("sort", newSorting[0]!.id);
+              params.set("order", newSorting[0]!.desc ? "desc" : "asc");
+          } else {
+              params.delete("sort");
+              params.delete("order");
+          }
+          router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      },
+      [sorting, searchParams, pathname, router],
+  );
 
   const table = useReactTable({
     data,
@@ -50,7 +101,7 @@ export function DataTable<TValue>({
     getSortedRowModel: getSortedRowModel(),
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: handleSortingChange,
     initialState: {
       pagination: {
         pageSize,
