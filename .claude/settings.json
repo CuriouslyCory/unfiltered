@@ -23,7 +23,8 @@
       "Bash(gh pr:*)",
       "Bash(ls -la /home/curiouslycory/workspace/active-personal/tools-agents*)",
       "Bash(find /home/curiouslycory/workspace/active-personal/tools-agents*)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(pnpm check:*)"
     ],
     "additionalDirectories": [
       "/home/curiouslycory/workspace/active-personal/unfiltered"
