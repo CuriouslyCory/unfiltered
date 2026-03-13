@@ -16,7 +16,7 @@
         "pnpm build succeeds"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "@types/react 18→19 is corrective (React 19 runtime already installed). May surface type errors in forwardRef patterns."
     },
     {
@@ -34,7 +34,7 @@
         "pnpm build succeeds"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Ecosystem compat confirmed: @t3-oss/env-nextjs peer dep allows zod ^4.0.0, @trpc/server has no zod peer dep, @hookform/resolvers has no zod peer dep."
     },
     {
@@ -52,7 +52,7 @@
         "pnpm build succeeds"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "eslint-config-next@16 requires eslint >=9.0.0. Legacy .eslintrc.cjs format is still supported in ESLint 9. Review next-auth beta.26-30 changelogs for breaking changes."
     },
     {
@@ -75,7 +75,7 @@
         "pnpm build succeeds"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Follow Prisma v7 migration guide. No MongoDB, no Accelerate, no middleware, no @map on enums detected. This story sets up infrastructure; next story updates all imports."
     },
     {

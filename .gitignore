@@ -45,6 +45,9 @@ yarn-error.log*
 # idea files
 .idea
 
+# generated prisma client
+src/generated/
+
 scripts/executive_orders
 scripts/processed_eos
 backups
