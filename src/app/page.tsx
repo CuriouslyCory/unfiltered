@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { type Metadata } from "next";
 import { api, HydrateClient } from "~/trpc/server";
 import { columns } from "./_components/document-table/columns";
@@ -49,7 +50,9 @@ export default async function Home() {
           </div>
         </div>
 
-        <DataTable columns={columns} data={documents} />
+        <Suspense>
+          <DataTable columns={columns} data={documents} />
+        </Suspense>
       </main>
     </HydrateClient>
   );

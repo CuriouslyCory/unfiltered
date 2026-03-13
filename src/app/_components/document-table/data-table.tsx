@@ -11,8 +11,8 @@ import {
   type ColumnFiltersState,
   getFilteredRowModel,
 } from "@tanstack/react-table";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useCallback, useEffect, useRef } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { cn } from "~/lib/utils";
 import { type Document } from "@prisma/client";
 import { Input } from "~/components/ui/input";
@@ -27,20 +27,172 @@ import {
 
 import { Button } from "~/components/ui/button";
 
+const DEFAULT_VALID_SORT_COLUMNS = new Set([
+    "dateSigned",
+    "riskScore",
+    "title",
+    "type",
+    "updatedAt",
+]);
+
+const DEFAULT_SORT: SortingState = [{ id: "dateSigned", desc: true }];
+
+function getPageIndexFromParams(searchParams: URLSearchParams): number {
+    const page = searchParams.get("page");
+    if (!page) return 0;
+    const parsed = parseInt(page, 10);
+    if (isNaN(parsed) || parsed < 1) return 0;
+    return parsed - 1; // URL is 1-indexed, table is 0-indexed
+}
+
+function getSortingFromParams(
+    searchParams: URLSearchParams,
+    validColumns: Set<string>,
+    defaultSort: SortingState,
+): SortingState {
+    const sort = searchParams.get("sort");
+    const order = searchParams.get("order");
+
+    if (sort && validColumns.has(sort)) {
+        return [{ id: sort, desc: order !== "asc" }];
+    }
+
+    return defaultSort;
+}
+
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   pageSize?: number;
+  onRowClick?: (row: Document) => void;
+  validSortColumns?: Set<string>;
+  defaultSort?: SortingState;
 }
 
 export function DataTable<TValue>({
   columns,
   data,
   pageSize = 20,
+  onRowClick,
+  validSortColumns = DEFAULT_VALID_SORT_COLUMNS,
+  defaultSort = DEFAULT_SORT,
 }: DataTableProps<Document, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
-  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+  const searchParams = useSearchParams();
+  const pathname = usePathname();
   const router = useRouter();
+
+  const [sorting, setSorting] = useState<SortingState>(() =>
+      getSortingFromParams(searchParams, validSortColumns, defaultSort),
+  );
+  const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>(() => {
+      const search = searchParams.get("search");
+      return search ? [{ id: "title", value: search }] : [];
+  });
+  const [searchValue, setSearchValue] = useState(
+      () => searchParams.get("search") ?? "",
+  );
+  const [pageIndex, setPageIndex] = useState(() =>
+      getPageIndexFromParams(searchParams),
+  );
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Sync sorting, search, and pagination state from URL on back/forward navigation
+  useEffect(() => {
+      const urlSorting = getSortingFromParams(searchParams, validSortColumns, defaultSort);
+      setSorting(urlSorting);
+
+      const urlSearch = searchParams.get("search") ?? "";
+      setSearchValue(urlSearch);
+      if (urlSearch) {
+          setColumnFilters((prev) => {
+              const other = prev.filter((f) => f.id !== "title");
+              return [...other, { id: "title", value: urlSearch }];
+          });
+      } else {
+          setColumnFilters((prev) => prev.filter((f) => f.id !== "title"));
+      }
+
+      const urlPageIndex = getPageIndexFromParams(searchParams);
+      const maxPage = Math.max(0, Math.ceil(data.length / pageSize) - 1);
+      setPageIndex(Math.min(urlPageIndex, maxPage));
+  }, [searchParams, data.length, pageSize]);
+
+  const handleSortingChange = useCallback(
+      (updaterOrValue: SortingState | ((old: SortingState) => SortingState)) => {
+          const newSorting =
+              typeof updaterOrValue === "function"
+                  ? updaterOrValue(sorting)
+                  : updaterOrValue;
+          setSorting(newSorting); // Optimistic update
+          setPageIndex(0); // Reset page on sort change
+
+          const params = new URLSearchParams(searchParams.toString());
+          if (newSorting.length > 0) {
+              params.set("sort", newSorting[0]!.id);
+              params.set("order", newSorting[0]!.desc ? "desc" : "asc");
+          } else {
+              params.delete("sort");
+              params.delete("order");
+          }
+          params.delete("page"); // Reset page on sort change
+          router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      },
+      [sorting, searchParams, pathname, router],
+  );
+
+  const pushSearchToUrl = useCallback(
+      (value: string) => {
+          const params = new URLSearchParams(searchParams.toString());
+          if (value) {
+              params.set("search", value);
+          } else {
+              params.delete("search");
+          }
+          params.delete("page"); // Reset page on search change
+          router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      },
+      [searchParams, pathname, router],
+  );
+
+  const handleSearchChange = useCallback(
+      (value: string) => {
+          setSearchValue(value); // Optimistic update
+          setPageIndex(0); // Reset page on search change
+          // Apply filter immediately for responsive UI
+          if (value) {
+              setColumnFilters((prev) => {
+                  const other = prev.filter((f) => f.id !== "title");
+                  return [...other, { id: "title", value }];
+              });
+          } else {
+              setColumnFilters((prev) => prev.filter((f) => f.id !== "title"));
+          }
+
+          // Debounce URL update
+          if (debounceRef.current) {
+              clearTimeout(debounceRef.current);
+          }
+          debounceRef.current = setTimeout(() => {
+              pushSearchToUrl(value);
+          }, 300);
+      },
+      [pushSearchToUrl],
+  );
+
+  const handlePageChange = useCallback(
+      (newPageIndex: number) => {
+          setPageIndex(newPageIndex); // Optimistic update
+
+          const params = new URLSearchParams(searchParams.toString());
+          if (newPageIndex === 0) {
+              params.delete("page"); // Page 1 omits param for clean URLs
+          } else {
+              params.set("page", String(newPageIndex + 1)); // 1-indexed in URL
+          }
+          router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      },
+      [searchParams, pathname, router],
+  );
 
   const table = useReactTable({
     data,
@@ -48,9 +200,13 @@ export function DataTable<TValue>({
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: (updater) => {
+        setColumnFilters((prev) =>
+            typeof updater === "function" ? updater(prev) : updater,
+        );
+    },
     getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
+    onSortingChange: handleSortingChange,
     initialState: {
       pagination: {
         pageSize,
@@ -59,6 +215,10 @@ export function DataTable<TValue>({
     state: {
       sorting,
       columnFilters,
+      pagination: {
+        pageIndex,
+        pageSize,
+      },
     },
   });
 
@@ -67,10 +227,8 @@ export function DataTable<TValue>({
       <div className="flex items-center py-4">
         <Input
           placeholder="Filter documents..."
-          value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("title")?.setFilterValue(event.target.value)
-          }
+          value={searchValue}
+          onChange={(event) => handleSearchChange(event.target.value)}
           className="max-w-sm"
         />
       </div>
@@ -110,9 +268,11 @@ export function DataTable<TValue>({
                     "transition-colors",
                   )}
                   onClick={() =>
-                    router.push(
-                      `/eo-summary/${row.original.slug}?sections=ELI5`,
-                    )
+                    onRowClick
+                      ? onRowClick(row.original)
+                      : router.push(
+                          `/eo-summary/${row.original.slug}?sections=ELI5`,
+                        )
                   }
                 >
                   {row.getVisibleCells().map((cell) => (
@@ -150,7 +310,7 @@ export function DataTable<TValue>({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.previousPage()}
+          onClick={() => handlePageChange(pageIndex - 1)}
           disabled={!table.getCanPreviousPage()}
         >
           Previous
@@ -158,7 +318,7 @@ export function DataTable<TValue>({
         <Button
           variant="outline"
           size="sm"
-          onClick={() => table.nextPage()}
+          onClick={() => handlePageChange(pageIndex + 1)}
           disabled={!table.getCanNextPage()}
         >
           Next

@@ -1,0 +1,77 @@
+# URL Table State Progress Log
+Started: Wed Mar 11 2026
+---
+
+## Codebase Patterns
+- DataTable component is at `src/app/_components/document-table/data-table.tsx` (client component)
+- Uses TanStack React Table v8 with `useReactTable` hook
+- Next.js App Router: `useSearchParams` requires wrapping in `<Suspense>` in parent server component
+- URL state sync pattern: local `useState` for optimistic updates + `useEffect` to sync from `searchParams` on back/forward
+- Column definitions are in `columns.tsx`, sortable columns: dateSigned, riskScore, title, type, updatedAt
+- Project uses 4-space indentation (prettier `--tab-width 4`)
+- Quality checks: `pnpm lint` (next lint + tsc --noEmit)
+- Debounced URL sync: use `useRef<ReturnType<typeof setTimeout>>` for timeout ID, clear on each change, push URL after delay
+- Column filters are managed externally via `columnFilters` state (not via table's internal setFilterValue) for URL sync consistency
+- Pagination URL param is 1-indexed (user-facing), internal TanStack state is 0-indexed; page 1 omits the param
+
+## 2026-03-11 - US-001
+- Implemented sorting state sync to URL query params (sort, order)
+- Added `useSearchParams`, `usePathname` hooks for URL state management
+- Created `getSortingFromParams()` helper to parse/validate URL sort params
+- Added `handleSortingChange` callback that optimistically updates local state then pushes URL
+- Added `useEffect` to sync sorting from URL on back/forward navigation
+- Wrapped `<DataTable>` in `<Suspense>` in page.tsx for `useSearchParams` compatibility
+- Default sort is dateSigned/desc when no URL params present
+- Files changed: src/app/_components/document-table/data-table.tsx, src/app/page.tsx
+- **Learnings for future iterations:**
+  - `useSearchParams` in Next.js App Router client components requires a `<Suspense>` boundary in the parent server component
+  - TanStack table's `onSortingChange` receives `Updater<SortingState>` (value or function), handle both cases
+  - `router.push()` with `{ scroll: false }` prevents scroll reset on URL param changes
+  - For optimistic updates: set local state immediately, then push URL; useEffect syncs back from URL on popstate
+  - Browser verification confirmed: first sort click, toggle, back button, and direct URL entry all work correctly
+---
+
+## 2026-03-11 - US-002
+- Implemented search filter sync to URL query params (`search` param)
+- Added `searchValue` state for optimistic input updates, `debounceRef` for 300ms debounced URL push
+- `handleSearchChange`: sets local input value + column filter immediately, debounces `router.push` with search param
+- `pushSearchToUrl`: builds URLSearchParams preserving existing params, sets/deletes `search`
+- `useEffect` on `searchParams` now also syncs search state on back/forward navigation
+- Initialized `columnFilters` and `searchValue` from URL `search` param on mount
+- Files changed: src/app/_components/document-table/data-table.tsx
+- **Learnings for future iterations:**
+  - Headless browser automation with Playwright `keyboard.type` can hang on Next.js client components; `fill()` also times out. Manual browser verification may be needed.
+  - Debounce pattern: use `useRef` for timeout ID, clear previous timeout on each keystroke, push URL after 300ms idle
+  - Column filter state needs to be managed externally (not just via table's `setFilterValue`) when syncing with URL, to ensure consistency on back/forward
+---
+
+## 2026-03-11 - US-003
+- Implemented pagination sync to URL query params (`page` param, 1-indexed in URL, 0-indexed internally)
+- Added `getPageIndexFromParams()` helper with validation (NaN, negative → page 1)
+- Added `pageIndex` state initialized from URL, clamped to max page count
+- Added `handlePageChange` callback: optimistic state update + URL push
+- Page 1 omits the `page` param for clean URLs
+- Sort and search changes reset page to 1 (both optimistic state and URL param)
+- Invalid page values (beyond max) are clamped in useEffect
+- Updated Previous/Next buttons to use `handlePageChange` instead of `table.previousPage()/nextPage()`
+- Passed controlled `pagination` state to `useReactTable`
+- Files changed: src/app/_components/document-table/data-table.tsx
+- **Learnings for future iterations:**
+  - TanStack table pagination is 0-indexed internally but users expect 1-indexed URLs, so convert at boundaries
+  - Must pass both `pageIndex` and `pageSize` in the `pagination` state object for controlled pagination
+  - Clamping page index to max requires access to data length; done in useEffect after data is available
+  - Reset page on sort/search change in both the optimistic state update AND the URL params
+---
+
+## 2026-03-11 - US-004
+- Verified full round-trip with all params combined - no additional code changes needed
+- All params (sort, order, search, page) coexist in the URL without conflict
+  - Each handler uses `new URLSearchParams(searchParams.toString())` preserving existing params
+- Empty values are omitted: search deleted when empty, page deleted when 1, sort/order always present
+- Direct URL entry (e.g., `?sort=riskScore&order=asc&search=executive&page=2`) works via `useState` initialization from `searchParams`
+- Back/forward navigation restores full state via unified `useEffect` on `searchParams`
+- Typecheck passes
+- **Learnings for future iterations:**
+  - Verification stories may need no code if prior stories were implemented correctly
+  - Key pattern for URL param coexistence: always read current params with `new URLSearchParams(searchParams.toString())` before modifying
+---

@@ -1,6 +1,9 @@
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { api } from "~/trpc/server";
+import { adminColumns } from "./columns";
+import { AdminDocumentsTable } from "./admin-documents-table";
 
 export default async function DocumentsPage() {
   const documents = await api.document.getAll({ onlyPublished: false });
@@ -17,28 +20,9 @@ export default async function DocumentsPage() {
         </Link>
       </div>
 
-      <div className="grid gap-4">
-        {documents.map((doc) => (
-          <Link
-            key={doc.id}
-            href={`/admin/documents/${doc.id}`}
-            className="flex items-center justify-between rounded-lg bg-white/5 p-4 transition hover:bg-white/10"
-          >
-            <div>
-              <h2 className="text-xl font-semibold">{doc.title}</h2>
-              <p className="text-sm text-gray-400">
-                Last updated: {doc.updatedAt.toLocaleDateString()}
-              </p>
-            </div>
-            <div className="flex items-center gap-4">
-              <span className="rounded bg-white/10 px-2 py-1 text-sm">
-                Risk: {doc.riskScore ?? "N/A"}
-              </span>
-              <span className="text-blue-400">Edit →</span>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <Suspense>
+        <AdminDocumentsTable columns={adminColumns} data={documents} />
+      </Suspense>
     </main>
   );
 }
