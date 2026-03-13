@@ -5,7 +5,7 @@ import {
   adminProcedure,
 } from "~/server/api/trpc";
 import { artifactOrder } from "~/lib/document-utils";
-import { getDocumentFts } from "@prisma/client/sql";
+import { getDocumentFts } from "~/generated/prisma/sql";
 
 export const documentRouter = createTRPCRouter({
   getAdjacentDocuments: publicProcedure

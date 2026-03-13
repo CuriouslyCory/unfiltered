@@ -1,5 +1,5 @@
 "use client";
-import { type DocumentArtifact } from "@prisma/client";
+import { type DocumentArtifact } from "~/generated/prisma/client";
 import Markdown, { type Components } from "react-markdown";
 import { markdownComponents } from "~/app/_components/markdown-components";
 import { useState, useRef, useEffect } from "react";

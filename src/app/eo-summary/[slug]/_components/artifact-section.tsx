@@ -1,6 +1,6 @@
 "use client";
 
-import { type DocumentArtifact } from "@prisma/client";
+import { type DocumentArtifact } from "~/generated/prisma/client";
 import {
   ChevronsUpDown,
   Link as LinkIcon,

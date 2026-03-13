@@ -1,0 +1,144 @@
+{
+  "project": "Unfiltered",
+  "branchName": "chore/dep-update-tw-next",
+  "description": "Comprehensive dependency update across 6 phases: patches/minors, Zod v4, Next.js+tRPC+ESLint 9, Prisma v7, UI library majors, and calendar/markdown upgrades",
+  "userStories": [
+    {
+      "id": "US-001",
+      "title": "Patch and minor dependency bumps",
+      "description": "As a developer, I want to update all safe patch/minor dependencies so the project uses current versions and fixes the @types/react mismatch.",
+      "acceptanceCriteria": [
+        "Run: pnpm add react@latest react-dom@latest @tanstack/react-query@latest @tanstack/react-table@latest react-hook-form@latest superjson@latest lucide-react@latest geist@latest @t3-oss/env-nextjs@latest",
+        "Run: pnpm add -D @types/react@latest @types/react-dom@latest @types/node@latest prettier@latest typescript@latest",
+        "Fix any type errors from @types/react 18 to 19 upgrade (likely React.forwardRef signatures in UI components)",
+        "pnpm typecheck passes",
+        "pnpm lint passes",
+        "pnpm build succeeds"
+      ],
+      "priority": 1,
+      "passes": true,
+      "notes": "@types/react 18→19 is corrective (React 19 runtime already installed). May surface type errors in forwardRef patterns."
+    },
+    {
+      "id": "US-002",
+      "title": "Zod v3 to v4 migration",
+      "description": "As a developer, I want to upgrade Zod to v4 and @hookform/resolvers to v5 so the project uses the latest validation library.",
+      "acceptanceCriteria": [
+        "Run: pnpm add zod@latest @hookform/resolvers@latest",
+        "In src/server/api/trpc.ts: replace 'import { ZodError } from \"zod\"' with 'import { z } from \"zod\"'",
+        "In src/server/api/trpc.ts errorFormatter: replace 'error.cause instanceof ZodError ? error.cause.flatten() : null' with 'error.cause instanceof z.ZodError ? z.flattenError(error.cause) : null'",
+        "Verify src/env.js needs no changes (z.object, z.string, z.enum, .default, .optional, .url all stable in v4)",
+        "Verify src/server/api/routers/document.ts needs no changes (all schema methods stable in v4)",
+        "pnpm typecheck passes",
+        "pnpm lint passes",
+        "pnpm build succeeds"
+      ],
+      "priority": 2,
+      "passes": true,
+      "notes": "Ecosystem compat confirmed: @t3-oss/env-nextjs peer dep allows zod ^4.0.0, @trpc/server has no zod peer dep, @hookform/resolvers has no zod peer dep."
+    },
+    {
+      "id": "US-003",
+      "title": "Next.js, tRPC, Auth, and ESLint 9 upgrade",
+      "description": "As a developer, I want to upgrade Next.js to 16.1, tRPC to 11.12, next-auth to latest beta, and ESLint to 9.",
+      "acceptanceCriteria": [
+        "Run: pnpm add next@latest @trpc/client@latest @trpc/server@latest @trpc/react-query@latest next-auth@beta @auth/prisma-adapter@latest",
+        "Run: pnpm add -D eslint@9 eslint-config-next@latest @typescript-eslint/eslint-plugin@latest @typescript-eslint/parser@latest eslint-plugin-mdx@latest",
+        "Remove @types/eslint from devDependencies (ESLint 9 ships its own types)",
+        "Verify .eslintrc.cjs still works with ESLint 9 legacy config support (no format change needed)",
+        "Fix any lint or type errors introduced by the upgrades",
+        "pnpm typecheck passes",
+        "pnpm lint passes",
+        "pnpm build succeeds"
+      ],
+      "priority": 3,
+      "passes": true,
+      "notes": "eslint-config-next@16 requires eslint >=9.0.0. Legacy .eslintrc.cjs format is still supported in ESLint 9. Review next-auth beta.26-30 changelogs for breaking changes."
+    },
+    {
+      "id": "US-004",
+      "title": "Prisma v7 schema, config, and client setup",
+      "description": "As a developer, I want to set up the Prisma v7 infrastructure (schema, config file, adapter-based client) so the project uses the new architecture.",
+      "acceptanceCriteria": [
+        "Run: pnpm add @prisma/client@latest @prisma/adapter-pg",
+        "Run: pnpm add -D prisma@latest tsx dotenv",
+        "Update prisma/schema.prisma: change generator provider from 'prisma-client-js' to 'prisma-client'",
+        "Update prisma/schema.prisma: add output = '../src/generated/prisma' to generator block",
+        "Update prisma/schema.prisma: remove 'fullTextSearchPostgres' from previewFeatures (GA in v7), keep 'typedSql' if still preview",
+        "Update prisma/schema.prisma: remove 'url = env(\"DATABASE_URL\")' from datasource block",
+        "Create prisma.config.ts at project root with defineConfig importing from 'prisma/config', setting schema path, migrations path, and datasource url from env('DATABASE_URL'). Include 'import \"dotenv/config\"' at top.",
+        "Rewrite src/server/db.ts: import PrismaClient from '~/generated/prisma/client.js', import PrismaPg from '@prisma/adapter-pg', create adapter with connectionString from env.DATABASE_URL, pass adapter to PrismaClient constructor",
+        "Update package.json scripts: change 'db:generate' and 'postinstall' from 'prisma generate --sql' to 'prisma generate' (verify if --sql flag still exists in v7)",
+        "Add 'src/generated/' to .gitignore",
+        "Run prisma generate and verify it succeeds and emits to src/generated/prisma/",
+        "pnpm typecheck passes",
+        "pnpm build succeeds"
+      ],
+      "priority": 4,
+      "passes": true,
+      "notes": "Follow Prisma v7 migration guide. No MongoDB, no Accelerate, no middleware, no @map on enums detected. This story sets up infrastructure; next story updates all imports."
+    },
+    {
+      "id": "US-005",
+      "title": "Update all Prisma imports to generated client path",
+      "description": "As a developer, I want to update all files importing from '@prisma/client' to use the new generated client path so the Prisma v7 migration compiles.",
+      "acceptanceCriteria": [
+        "Update import in src/lib/document-utils.ts: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/_components/document-card.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/_components/document-type-badge.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/_components/document-table/columns.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/_components/document-table/data-table.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/admin/documents/columns.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/admin/documents/admin-documents-table.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/admin/_components/document-editor.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/eo-summary/[slug]/_components/artifact-section.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/eo-summary/[slug]/_components/summary-section.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/eo-summary/[slug]/_components/details-pane.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update import in src/app/eo-summary/[slug]/_components/updates-section.tsx: change from '@prisma/client' to '~/generated/prisma/client.js'",
+        "Update typed SQL import in src/server/api/routers/document.ts: change from '@prisma/client/sql' to the generated path (check src/generated/prisma/ for exact sql export path)",
+        "Verify PrismaAdapter(db) in src/server/auth/config.ts works with Prisma v7 client (update import if needed)",
+        "pnpm typecheck passes",
+        "pnpm lint passes",
+        "pnpm build succeeds"
+      ],
+      "priority": 5,
+      "passes": true,
+      "notes": "Depends on US-004 completing the Prisma v7 infrastructure setup. All 12 files plus typed SQL import and auth adapter need updating."
+    },
+    {
+      "id": "US-006",
+      "title": "UI library major version upgrades",
+      "description": "As a developer, I want to upgrade tailwind-merge, sonner, and @vercel/analytics to their latest major versions.",
+      "acceptanceCriteria": [
+        "Run: pnpm add tailwind-merge@latest sonner@latest @vercel/analytics@latest",
+        "Verify cn() function in src/lib/utils.ts still works with tailwind-merge v3 (API unchanged, internal class resolution updated for Tailwind v4)",
+        "Update src/app/_components/ui/sonner.tsx Toaster component if sonner v3 changed props",
+        "Verify toast calls in src/app/admin/_components/document-editor.tsx and src/app/eo-summary/[slug]/_components/artifact-section.tsx still work",
+        "Update Analytics component in src/app/layout.tsx if @vercel/analytics v2 changed import or props",
+        "pnpm typecheck passes",
+        "pnpm lint passes",
+        "pnpm build succeeds"
+      ],
+      "priority": 6,
+      "passes": true,
+      "notes": "tailwind-merge v3 aligns with Tailwind v4 already in use. sonner v1→v3 and @vercel/analytics v1→v2 may have prop changes."
+    },
+    {
+      "id": "US-007",
+      "title": "Calendar and markdown component upgrades",
+      "description": "As a developer, I want to upgrade react-day-picker to v9 and react-markdown to v10.",
+      "acceptanceCriteria": [
+        "Run: pnpm add react-day-picker@latest react-markdown@latest",
+        "Replace src/app/_components/ui/calendar.tsx with the latest shadcn/ui Calendar component for react-day-picker v9 (v9 renames all classNames keys and replaces IconLeft/IconRight with Chevron component)",
+        "Update react-markdown usage across all files if v10 changed import paths or component props",
+        "pnpm typecheck passes",
+        "pnpm lint passes",
+        "pnpm build succeeds",
+        "Verify in browser using dev-browser skill"
+      ],
+      "priority": 7,
+      "passes": true,
+      "notes": "react-day-picker v9 is a complete API rewrite. Use shadcn/ui's updated Calendar component as a drop-in replacement rather than manually migrating classNames."
+    }
+  ]
+}

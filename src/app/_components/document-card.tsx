@@ -8,7 +8,7 @@ import {
 } from "~/components/ui/card";
 import { RiskScore } from "./risk-score";
 import { cn } from "~/lib/utils";
-import type { Document } from "@prisma/client";
+import type { Document } from "~/generated/prisma/client";
 import { Button } from "./ui/button";
 
 interface DocumentCardProps {

@@ -1,4 +1,4 @@
-import { type Document } from "@prisma/client";
+import { type Document } from "~/generated/prisma/client";
 
 export default function SummarySection({ document }: { document: Document }) {
   return (

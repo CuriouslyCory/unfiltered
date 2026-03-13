@@ -1,0 +1,131 @@
+## Codebase Patterns
+- ESLint 9 with flat config: use `eslint.config.mjs` (not `.eslintrc.cjs`), `eslint-config-next@16` exports flat config arrays
+- Use `tseslint.configs.disableTypeChecked` for `.js`/`.mjs`/`.cjs` files to avoid project service errors
+- `eslint-plugin-mdx` requires `import * as mdx` (no default export)
+- Prisma typed SQL requires `prisma generate --sql` to regenerate after dependency updates
+- Project uses T3 stack: Next.js + tRPC + Prisma + NextAuth
+- Lint scripts should exclude non-source dirs (tasks, .agents, prisma, scripts) and *.md files
+- Zod v4: use `z.ZodError` (not `ZodError`) and `z.flattenError(err)` (not `err.flatten()`)
+- Prisma v7: generator provider is `prisma-client` (not `prisma-client-js`), output goes to `src/generated/prisma/`
+- Prisma v7: use `PrismaPg` adapter from `@prisma/adapter-pg` with `{ connectionString }` (not raw string)
+- Prisma v7: config uses `migrations.path` (not `migrate.migrations`), no `earlyAccess` property
+- Prisma v7: imports from `~/generated/prisma/client` (not `@prisma/client`), SQL from `~/generated/prisma/sql`
+- Prisma v7: use extensionless imports (`~/generated/prisma/client` not `client.js`) — Turbopack can't resolve `.js` extension to `.ts` files
+- react-day-picker v9: classNames use new keys (e.g., `month_caption`, `day_button`, `selected`, `today`, `outside`), `Chevron` component replaces `IconLeft`/`IconRight`
+
+---
+
+## 2026-03-12 - US-001
+- What was implemented: Patch and minor dependency bumps for all safe dependencies
+- Files changed:
+  - package.json (updated deps, changed lint scripts from `next lint` to `eslint .`)
+  - pnpm-lock.yaml (lockfile updated)
+  - .eslintignore (new file to exclude non-source files from eslint)
+- **Learnings for future iterations:**
+  - Next.js 16 removed `next lint` — the `lint` and `check` scripts needed updating to use `eslint .` directly
+  - @types/react 18→19 upgrade caused no type errors despite React 19 runtime already being installed
+  - @t3-oss/env-nextjs went from 0.10→0.13 (minor-ish) with no breaking changes
+  - TypeScript 5.9.3 causes peer dep warnings with @typescript-eslint/* 8.28.0 (needs <5.9.0) — will be resolved in US-003
+  - `prisma generate --sql` must be re-run after dependency updates to regenerate typed SQL exports
+---
+
+## 2026-03-12 - US-002
+- What was implemented: Zod v3→v4 migration and @hookform/resolvers v3→v5
+- Files changed:
+  - package.json (zod ^4.3.6, @hookform/resolvers ^5.2.2)
+  - pnpm-lock.yaml (lockfile updated)
+  - src/server/api/trpc.ts (replaced `ZodError` import with `z`, updated errorFormatter to use `z.ZodError` and `z.flattenError()`)
+- **Learnings for future iterations:**
+  - Zod v4 migration is minimal for this codebase — all schema APIs (z.object, z.string, z.number, z.boolean, z.date, z.enum, .optional, .default, .url, .nullable) are stable
+  - Main breaking change is `ZodError` → `z.ZodError` and `.flatten()` → `z.flattenError()`
+  - @t3-oss/env-nextjs, @trpc/server, and @hookform/resolvers all compatible with Zod v4 out of the box
+  - @hookform/resolvers is installed but not yet imported in any source files
+---
+
+## 2026-03-12 - US-003
+- What was implemented: Next.js 16.0→16.1, tRPC 11.0→11.12, next-auth beta.25→beta.30, @auth/prisma-adapter 2.8→2.11, ESLint 8→9, eslint-config-next 15→16, @typescript-eslint/* 8.28→8.57, eslint-plugin-mdx 3.3→3.7
+- Files changed:
+  - package.json (upgraded deps, removed @types/eslint)
+  - pnpm-lock.yaml (lockfile updated)
+  - .eslintrc.cjs (deleted — replaced by flat config)
+  - .eslintignore (deleted — ignores now in eslint.config.mjs)
+  - eslint.config.mjs (new — ESLint 9 flat config)
+  - src/server/api/trpc.ts (optional chaining fix for `@typescript-eslint/prefer-optional-chain`)
+- **Learnings for future iterations:**
+  - `eslint-config-next@16` only supports flat config — legacy `.eslintrc.cjs` causes circular structure errors
+  - `eslint-plugin-mdx` has no default export — must use `import * as mdx from "eslint-plugin-mdx"` and `mdx.flat` for the flat config object
+  - JS/MJS config files must have type-checked rules disabled via `tseslint.configs.disableTypeChecked` or they'll fail with "not found by the project service"
+  - @typescript-eslint/* 8.57 resolves the TypeScript 5.9.3 peer dep warnings from 8.28
+  - next-auth beta.25→beta.30 and tRPC 11.0→11.12 were drop-in upgrades with no breaking changes
+  - `@typescript-eslint/prefer-optional-chain` is now enforced as error in `recommendedTypeChecked`
+---
+
+## 2026-03-12 - US-004
+- What was implemented: Prisma v7 schema, config, and adapter-based client setup
+- Files changed:
+  - package.json (@prisma/client 6.5→7.5, prisma 6.5→7.5, added @prisma/adapter-pg, tsx, dotenv)
+  - pnpm-lock.yaml (lockfile updated)
+  - prisma/schema.prisma (generator: prisma-client with output, removed fullTextSearchPostgres preview feature, removed datasource url)
+  - prisma.config.ts (new — defineConfig with schema, migrations path, and datasource url)
+  - src/server/db.ts (rewritten to use PrismaPg adapter with generated client import)
+  - .gitignore (added src/generated/)
+- **Learnings for future iterations:**
+  - Prisma v7 generator provider changed from `prisma-client-js` to `prisma-client`
+  - `fullTextSearchPostgres` is GA in v7, must be removed from previewFeatures
+  - `PrismaPg` constructor takes `pg.Pool | pg.PoolConfig`, not a raw connection string — use `{ connectionString: url }`
+  - `prisma.config.ts` uses `migrations: { path }` not `migrate: { migrations }`, no `earlyAccess` property
+  - Generated client output goes to `src/generated/prisma/` — typed SQL exports are at `~/generated/prisma/sql`
+  - `--sql` flag still exists in Prisma v7 `prisma generate`
+  - Typecheck/lint errors in other files are expected until US-005 updates all `@prisma/client` imports to `~/generated/prisma/client.js`
+  - `datasource` block in schema.prisma no longer needs `url` — it's provided via prisma.config.ts
+---
+
+## 2026-03-12 - US-005
+- What was implemented: Updated all `@prisma/client` imports to `~/generated/prisma/client` and `@prisma/client/sql` to `~/generated/prisma/sql`
+- Files changed:
+  - src/lib/document-utils.ts
+  - src/app/_components/document-card.tsx
+  - src/app/_components/document-type-badge.tsx
+  - src/app/_components/document-table/columns.tsx
+  - src/app/_components/document-table/data-table.tsx
+  - src/app/admin/documents/columns.tsx
+  - src/app/admin/documents/admin-documents-table.tsx
+  - src/app/admin/_components/document-editor.tsx
+  - src/app/eo-summary/[slug]/_components/artifact-section.tsx
+  - src/app/eo-summary/[slug]/_components/summary-section.tsx
+  - src/app/eo-summary/[slug]/_components/details-pane.tsx
+  - src/app/eo-summary/[slug]/_components/updates-section.tsx
+  - src/server/api/routers/document.ts (typed SQL import)
+  - src/server/db.ts (PrismaClient import)
+- **Learnings for future iterations:**
+  - Turbopack (Next.js build) cannot resolve `.js` extensions to `.ts` files — use extensionless imports for generated Prisma client (`~/generated/prisma/client` not `client.js`)
+  - TypeScript `tsc --noEmit` accepts both `.js` and extensionless imports with `moduleResolution: "Bundler"`, but Turbopack only accepts extensionless
+  - `PrismaAdapter(db)` in auth config required no changes — it imports `db` from `~/server/db` which was already updated in US-004
+  - All Prisma types (Document, DocumentArtifact, DocumentType) are re-exported from the generated `client.ts`
+  - Typed SQL exports (e.g., `getDocumentFts`) are available from `~/generated/prisma/sql`
+---
+
+## 2026-03-12 - US-006
+- What was implemented: Major version upgrades for tailwind-merge (2→3), sonner (1→2), and @vercel/analytics (1→2)
+- Files changed:
+  - package.json (updated deps)
+  - pnpm-lock.yaml (lockfile updated)
+- **Learnings for future iterations:**
+  - tailwind-merge v3 is a drop-in upgrade — `twMerge()` and `cn()` APIs unchanged, internals updated for Tailwind v4 class resolution
+  - sonner v2 (not v3 as PRD notes suggested) is the latest — `Toaster` component and `toast()` function APIs unchanged
+  - @vercel/analytics v2 is a drop-in upgrade — `Analytics` component import from `@vercel/analytics/react` unchanged
+  - All three upgrades required zero code changes, only package version bumps
+---
+
+## 2026-03-12 - US-007
+- What was implemented: react-day-picker 8.10.1→9.14.0 and react-markdown 9.1.0→10.1.0
+- Files changed:
+  - package.json (updated react-day-picker and react-markdown versions)
+  - pnpm-lock.yaml (lockfile updated)
+  - src/app/_components/ui/calendar.tsx (rewritten for react-day-picker v9 API)
+- **Learnings for future iterations:**
+  - react-day-picker v9 completely renamed classNames keys: `caption` → `month_caption`, `nav_button` → split into `button_previous`/`button_next`, `table` → `month_grid`, `head_row` → `weekdays`, `head_cell` → `weekday`, `row` → `week`, `cell` → `day`, `day` → `day_button`, `day_selected` → `selected`, `day_today` → `today`, `day_outside` → `outside`, `day_disabled` → `disabled`, `day_range_start` → `range_start`, `day_range_end` → `range_end`, `day_range_middle` → `range_middle`, `day_hidden` → `hidden`
+  - react-day-picker v9 replaced `IconLeft`/`IconRight` components with single `Chevron` component that receives `orientation` prop ("left" or "right")
+  - react-markdown v10 is a drop-in upgrade — `Markdown` default export, `Components` type export, and `remarkPlugins` prop all unchanged
+  - react-markdown v10 adds `MarkdownAsync` and `MarkdownHooks` named exports for async/hooks patterns
+---

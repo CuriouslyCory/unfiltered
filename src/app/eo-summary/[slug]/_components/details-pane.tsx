@@ -1,4 +1,4 @@
-import { type Document } from "@prisma/client";
+import { type Document } from "~/generated/prisma/client";
 import Link from "next/link";
 import { DocumentTypeBadge } from "~/app/_components/document-type-badge";
 import { RiskScore } from "~/app/_components/risk-score";

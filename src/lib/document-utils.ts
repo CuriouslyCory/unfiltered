@@ -1,4 +1,4 @@
-import { type Document, type DocumentArtifact } from "@prisma/client";
+import { type Document, type DocumentArtifact } from "~/generated/prisma/client";
 
 export const artifactOrder = [
   // "Updates",

@@ -14,7 +14,7 @@ import {
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { cn } from "~/lib/utils";
-import { type Document } from "@prisma/client";
+import { type Document } from "~/generated/prisma/client";
 import { Input } from "~/components/ui/input";
 import {
   Table,
