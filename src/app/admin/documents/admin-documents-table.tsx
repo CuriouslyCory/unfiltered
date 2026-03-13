@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { type Document } from "@prisma/client";
+import { type Document } from "~/generated/prisma/client";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo } from "react";
 import { DataTable } from "~/app/_components/document-table/data-table";

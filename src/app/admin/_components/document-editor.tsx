@@ -5,7 +5,7 @@ import {
   type Document,
   type DocumentArtifact,
   type DocumentType,
-} from "@prisma/client";
+} from "~/generated/prisma/client";
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";

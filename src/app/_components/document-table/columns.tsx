@@ -1,7 +1,7 @@
 "use client";
 
 import { type ColumnDef } from "@tanstack/react-table";
-import { type DocumentType, type Document } from "@prisma/client";
+import { type DocumentType, type Document } from "~/generated/prisma/client";
 import { RiskScore } from "../risk-score";
 import { toTitleCase } from "~/lib/utils";
 import { ArrowUpDown } from "lucide-react";
