@@ -1,7 +1,0 @@
-node_modules
-.next
-tasks
-.agents
-prisma
-scripts
-*.md
