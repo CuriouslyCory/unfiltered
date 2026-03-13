@@ -102,7 +102,7 @@
         "pnpm build succeeds"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "Depends on US-004 completing the Prisma v7 infrastructure setup. All 12 files plus typed SQL import and auth adapter need updating."
     },
     {
@@ -120,7 +120,7 @@
         "pnpm build succeeds"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "tailwind-merge v3 aligns with Tailwind v4 already in use. sonner v1→v3 and @vercel/analytics v1→v2 may have prop changes."
     },
     {
@@ -137,7 +137,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "react-day-picker v9 is a complete API rewrite. Use shadcn/ui's updated Calendar component as a drop-in replacement rather than manually migrating classNames."
     }
   ]
