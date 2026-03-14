@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   type Document,
   type DocumentArtifact,
@@ -50,6 +50,20 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
     title: "",
     content: "",
   });
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "e") {
+        const tag = (globalThis.document.activeElement as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (editingArtifactId !== null) return;
+        e.preventDefault();
+        setIsEditing((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editingArtifactId]);
 
   const updateDocument = api.document.update.useMutation({
     onSuccess: () => {
