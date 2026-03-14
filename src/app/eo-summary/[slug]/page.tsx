@@ -14,6 +14,7 @@ import { DocumentTypeBadge } from "~/components/document-type-badge";
 import { DocumentBreadcrumbs } from "./_components/breadcrumbs";
 import { RelatedDocuments } from "./_components/related-documents";
 import { SiteContextBanner } from "./_components/site-context-banner";
+import { StickyDocumentHeader } from "./_components/sticky-document-header";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -72,10 +73,17 @@ export default async function Page({ params, searchParams }: Props) {
 
   return (
     <article className="flex flex-col gap-y-12 pb-16 pt-6 md:pb-0">
+      <StickyDocumentHeader
+        title={toTitleCase(document.title)}
+        riskScore={document.riskScore}
+        sectionTitles={artifactOrder.filter(
+          (title) => getArtifactByTitle(document, title) !== undefined,
+        )}
+      />
       <DocumentBreadcrumbs type={document.type} title={toTitleCase(document.title)} />
       <SiteContextBanner />
       <div className="flex flex-col gap-y-2">
-        <h1 className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>
+        <h1 id="document-title" className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>
         {honestTitle && (
           <div className="flex items-baseline gap-x-2">
             <h4 className="text-sm text-muted-foreground">Honest Title:</h4>
