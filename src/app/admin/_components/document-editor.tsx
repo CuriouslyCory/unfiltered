@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   type Document,
   type DocumentArtifact,
@@ -18,6 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
+import {
+  artifactOrder,
+  artifactSectionId,
+  getArtifactStyle,
+} from "~/lib/document-utils";
 
 interface DocumentEditorProps {
   document: Document & { documentArtifact: DocumentArtifact[] };
@@ -45,6 +50,20 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
     title: "",
     content: "",
   });
+
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "e") {
+        const tag = (globalThis.document.activeElement as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (editingArtifactId !== null) return;
+        e.preventDefault();
+        setIsEditing((prev) => !prev);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [editingArtifactId]);
 
   const updateDocument = api.document.update.useMutation({
     onSuccess: () => {
@@ -149,7 +168,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
 
   return (
     <div className="grid gap-8">
-      <section className="rounded-lg bg-white/5 p-6">
+      <section id="document-details" className="rounded-lg bg-white/5 p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-xl font-semibold">Document Details</h2>
           <Button
@@ -385,11 +404,22 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
           )}
 
           {document.documentArtifact
-            .sort((a, b) => a.title.localeCompare(b.title))
-            .map((artifact) => (
+            .sort((a, b) => {
+              const aIndex = artifactOrder.indexOf(a.title);
+              const bIndex = artifactOrder.indexOf(b.title);
+              // Items not in artifactOrder go to the end
+              const aSortKey = aIndex === -1 ? artifactOrder.length : aIndex;
+              const bSortKey = bIndex === -1 ? artifactOrder.length : bIndex;
+              return aSortKey - bSortKey;
+            })
+            .map((artifact) => {
+              const style = getArtifactStyle(artifact.title);
+              const ArtifactIcon = style.icon;
+              return (
               <div
                 key={artifact.id}
-                className="rounded-lg border border-gray-700 p-4"
+                id={artifactSectionId(artifact.title)}
+                className={`scroll-mt-4 rounded-lg border-l-4 ${style.borderClass} bg-white/5 p-4`}
               >
                 <div className="mb-2 flex items-center justify-between">
                   {editingArtifactId === artifact.id ? (
@@ -405,7 +435,10 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
                       className="rounded-md border-gray-700 bg-white/5 p-1"
                     />
                   ) : (
-                    <h3 className="font-medium">{artifact.title}</h3>
+                    <h3 className="flex items-center gap-2 font-medium">
+                      <ArtifactIcon className="h-4 w-4" />
+                      {artifact.title}
+                    </h3>
                   )}
                   <div className="flex gap-2">
                     {editingArtifactId === artifact.id ? (
@@ -477,7 +510,8 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
                   </pre>
                 )}
               </div>
-            ))}
+              );
+            })}
         </div>
       </section>
     </div>

@@ -6,6 +6,8 @@ import { api } from "~/trpc/server";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { toTitleCase } from "~/lib/utils";
 import { DocumentType } from "~/generated/prisma/client";
+import { Badge } from "~/app/_components/ui/badge";
+import { DocumentSidebar } from "../../_components/document-sidebar";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -104,12 +106,26 @@ export default async function DocumentEditorPage({
           ← Back to Documents
         </Link>
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{document.title}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold">{document.title}</h1>
+            <Badge variant={document.published ? "default" : "secondary"}>
+              {document.published ? "Published" : "Draft"}
+            </Badge>
+          </div>
         </div>
       </div>
-      <AdjacentDocs adjacentDocs={adjacentDocs} queryString={queryString} />
-      <DocumentEditor document={document} />
-      <AdjacentDocs adjacentDocs={adjacentDocs} queryString={queryString} />
+      <div className="flex gap-6">
+        <aside className="hidden w-[280px] shrink-0 lg:block">
+          <div className="sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto">
+            <DocumentSidebar document={document} />
+          </div>
+        </aside>
+        <div className="min-w-0 flex-1">
+          <AdjacentDocs adjacentDocs={adjacentDocs} queryString={queryString} />
+          <DocumentEditor document={document} />
+          <AdjacentDocs adjacentDocs={adjacentDocs} queryString={queryString} />
+        </div>
+      </div>
     </main>
   );
 }
