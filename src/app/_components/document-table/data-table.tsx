@@ -16,6 +16,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { cn } from "~/lib/utils";
 import { type Document } from "~/generated/prisma/client";
+import { RISK_RANGES } from "~/lib/document-utils";
 import { Input } from "~/components/ui/input";
 import {
   Select,
@@ -35,14 +36,6 @@ import {
 
 import { Button } from "~/components/ui/button";
 import { Search } from "lucide-react";
-
-const RISK_RANGES: Record<string, [number, number]> = {
-  low: [0, 2],
-  moderate: [3, 4],
-  elevated: [5, 6],
-  high: [7, 8],
-  severe: [9, 10],
-};
 
 const riskRangeFilter: FilterFn<Document> = (row, columnId, filterValue: string) => {
   const range = RISK_RANGES[filterValue];

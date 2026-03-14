@@ -5,6 +5,7 @@ import { DocumentEditor } from "../../_components/document-editor";
 import { api } from "~/trpc/server";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { toTitleCase } from "~/lib/utils";
+import { DocumentType } from "~/generated/prisma/client";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -12,11 +13,42 @@ type Props = {
 };
 
 type AdjacentDocs = Awaited<
-  ReturnType<typeof api.document.getAdjacentDocuments>
+  ReturnType<typeof api.document.getAdminAdjacentDocuments>
 >;
 
-export default async function DocumentEditorPage({ params }: Props) {
+const validSortColumns = new Set(["id", "title", "createdAt", "updatedAt"]);
+const validRiskLevels = new Set([
+  "low",
+  "moderate",
+  "elevated",
+  "high",
+  "severe",
+]);
+
+function getStringParam(
+  value: string | string[] | undefined,
+): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+function buildQueryString(
+  searchParams: Record<string, string | string[] | undefined>,
+): string {
+  const params = new URLSearchParams();
+  for (const key of ["sort", "order", "search", "type", "risk"]) {
+    const val = getStringParam(searchParams[key]);
+    if (val) params.set(key, val);
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : "";
+}
+
+export default async function DocumentEditorPage({
+  params,
+  searchParams,
+}: Props) {
   const { id } = await params;
+  const resolvedSearchParams = await searchParams;
   const documentId = parseInt(id);
 
   if (isNaN(documentId)) {
@@ -34,15 +66,39 @@ export default async function DocumentEditorPage({ params }: Props) {
     notFound();
   }
 
-  const adjacentDocs = await api.document.getAdjacentDocuments({
+  // Parse sort/filter params for adjacent document navigation
+  const sortParam = getStringParam(resolvedSearchParams.sort);
+  const orderParam = getStringParam(resolvedSearchParams.order);
+  const searchParam = getStringParam(resolvedSearchParams.search);
+  const typeParam = getStringParam(resolvedSearchParams.type);
+  const riskParam = getStringParam(resolvedSearchParams.risk);
+
+  const adjacentDocs = await api.document.getAdminAdjacentDocuments({
     currentId: documentId,
+    sort:
+      sortParam && validSortColumns.has(sortParam)
+        ? (sortParam as "id" | "title" | "createdAt" | "updatedAt")
+        : undefined,
+    order:
+      orderParam === "asc" || orderParam === "desc" ? orderParam : undefined,
+    search: searchParam || undefined,
+    type:
+      typeParam && typeParam in DocumentType
+        ? (typeParam as keyof typeof DocumentType)
+        : undefined,
+    risk:
+      riskParam && validRiskLevels.has(riskParam)
+        ? (riskParam as "low" | "moderate" | "elevated" | "high" | "severe")
+        : undefined,
   });
+
+  const queryString = buildQueryString(resolvedSearchParams);
 
   return (
     <main className="container mx-auto p-4">
       <div className="mb-8">
         <Link
-          href="/admin/documents"
+          href={`/admin/documents${queryString}`}
           className="mb-2 inline-block text-sm text-blue-400 hover:text-blue-300"
         >
           ← Back to Documents
@@ -51,19 +107,25 @@ export default async function DocumentEditorPage({ params }: Props) {
           <h1 className="text-3xl font-bold">{document.title}</h1>
         </div>
       </div>
-      <AdjacentDocs adjacentDocs={adjacentDocs} />
+      <AdjacentDocs adjacentDocs={adjacentDocs} queryString={queryString} />
       <DocumentEditor document={document} />
-      <AdjacentDocs adjacentDocs={adjacentDocs} />
+      <AdjacentDocs adjacentDocs={adjacentDocs} queryString={queryString} />
     </main>
   );
 }
 
-function AdjacentDocs({ adjacentDocs }: { adjacentDocs: AdjacentDocs }) {
+function AdjacentDocs({
+  adjacentDocs,
+  queryString,
+}: {
+  adjacentDocs: AdjacentDocs;
+  queryString: string;
+}) {
   return (
     <div className="flex w-full items-center justify-between gap-x-4">
       {adjacentDocs.previous && (
         <Link
-          href={`/admin/documents/${adjacentDocs.previous.id}`}
+          href={`/admin/documents/${adjacentDocs.previous.id}${queryString}`}
           className="group flex items-center gap-x-2 text-sm text-gray-500 hover:text-gray-700"
         >
           <ChevronLeftIcon className="h-4 w-4" />
@@ -77,7 +139,7 @@ function AdjacentDocs({ adjacentDocs }: { adjacentDocs: AdjacentDocs }) {
       )}
       {adjacentDocs.next && (
         <Link
-          href={`/admin/documents/${adjacentDocs.next.id}`}
+          href={`/admin/documents/${adjacentDocs.next.id}${queryString}`}
           className="group flex items-center gap-x-2 text-sm text-gray-500 hover:text-gray-700"
         >
           <span className="text-right">

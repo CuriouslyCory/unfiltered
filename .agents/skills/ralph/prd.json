@@ -1,459 +1,190 @@
 {
   "project": "Unfiltered",
-  "branchName": "feat/ux-design-overhaul",
-  "description": "Comprehensive UX & design overhaul to transform Slak.me into a trustworthy, navigable civic information tool with improved navigation, visual hierarchy, search, and content discovery",
+  "branchName": "feat/admin-document-detail-enhancements",
+  "description": "Enhance the admin document detail page with a sticky sidebar for artifact navigation, document health/completeness score, workflow API integration for artifact generation, and visual/UX polish",
   "userStories": [
     {
       "id": "US-001",
-      "title": "Header tagline and brand identity",
-      "description": "As a first-time visitor, I want to immediately understand what Slak.me does so that I can trust the site as a credible information source.",
+      "title": "Add calculateDocumentHealth utility and artifactSectionId helper",
+      "description": "As a developer, I need pure utility functions for health score calculation and consistent section ID generation so they can be used by both the sidebar and editor components.",
       "acceptanceCriteria": [
-        "Tagline 'Independent Executive Order Analysis' appears below the 'Slak.me' brand name in src/app/_components/theme/header.tsx",
-        "Tagline uses text-xs text-muted-foreground styling, visible but not competing with brand",
-        "Header has a bottom border (border-b border-border) for visual structure",
-        "Header bottom margin reduced from mb-12 to mb-8",
-        "Site metadata description in src/app/layout.tsx updated to: 'Independent analysis of executive orders, legislation, and government actions — tracking constitutional risk and civic impact'",
-        "Tagline visible on both desktop and mobile layouts",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "calculateDocumentHealth function added to src/lib/document-utils.ts",
+        "Signature: calculateDocumentHealth(document: Document & { documentArtifact: DocumentArtifact[] }): HealthScoreResult",
+        "HealthScoreResult type exported with: score (0-100), maxScore (100), and breakdown object with requiredFields, optionalFields, artifacts, published — each having filled/missing string arrays and score/max numbers",
+        "Scoring: required fields 35 pts (7 each for title, originalDocumentUrl, dateSigned, signer, type), optional fields 10 pts (5 each for shortSummary, riskScore), artifact coverage 45 pts (5 per standard artifact from artifactOrder), published 10 pts",
+        "artifactSectionId(title: string) helper added: returns artifact-${title.toLowerCase().replace(/\\s+/g, '-')}",
+        "Both functions are pure with no side effects",
+        "Typecheck passes"
       ],
       "priority": 1,
-      "passes": true,
-      "notes": "Files to modify: src/app/_components/theme/header.tsx, src/app/layout.tsx"
+      "passes": false,
+      "notes": "File: src/lib/document-utils.ts. These are data-only utilities, no UI changes."
     },
     {
       "id": "US-002",
-      "title": "Install breadcrumb component and add to document pages",
-      "description": "As a user who landed directly on a document page, I want to see breadcrumb navigation so that I understand where I am in the site and can navigate to related areas.",
+      "title": "Add section IDs and canonical sort to document editor",
+      "description": "As a developer, I need scroll-target IDs on each section in the document editor and artifacts sorted by canonical order so the sidebar can navigate to them.",
       "acceptanceCriteria": [
-        "Install shadcn breadcrumb component via: pnpm dlx shadcn@latest add breadcrumb",
-        "Create src/app/eo-summary/[slug]/_components/breadcrumbs.tsx component",
-        "Breadcrumbs render above the document title in src/app/eo-summary/[slug]/page.tsx: Home > {Document Type} > {Truncated Title}",
-        "Home links to /",
-        "Document type segment is human-readable (e.g., 'Executive Orders' not 'EXECUTIVE_ORDER')",
-        "Document title truncated to ~60 characters with ellipsis",
-        "Breadcrumbs visible on both desktop and mobile",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "id='document-details' added to the Document Details section element in document-editor.tsx",
+        "Each artifact div gets id={artifactSectionId(artifact.title)} attribute using the helper from US-001",
+        "Each artifact div gets scroll-mt-4 class for scroll offset",
+        "Artifacts sorted by artifactOrder index from document-utils.ts instead of alphabetical (.localeCompare)",
+        "Artifacts not in artifactOrder appear at the end of the list",
+        "Typecheck passes"
       ],
       "priority": 2,
-      "passes": true,
-      "notes": "Files to create: src/app/eo-summary/[slug]/_components/breadcrumbs.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
+      "passes": false,
+      "notes": "File: src/app/admin/_components/document-editor.tsx. Import artifactSectionId and artifactOrder from ~/lib/document-utils."
     },
     {
       "id": "US-003",
-      "title": "Artifact styles config map in document-utils",
-      "description": "As a developer, I need a centralized config mapping artifact titles to border colors and icon components so that visual differentiation can be applied consistently.",
+      "title": "Apply artifact border colors and icons in editor",
+      "description": "As an admin, I want artifact cards in the editor to use their signature border colors and icons so I can visually distinguish artifact types at a glance.",
       "acceptanceCriteria": [
-        "Add artifactStyles config map to src/lib/document-utils.ts mapping artifact titles to border class strings and Lucide icon component names",
-        "Mappings: ELI5 -> border-blue-400 + BookOpen, Key Points -> border-slate-400 + ListChecks, Areas of Concern -> border-orange-400 + AlertTriangle, Constitutional Considerations -> border-red-400 + Scale, Take Action -> border-green-500 + Megaphone, Social Post -> border-indigo-400 + Share2, Letter of Concern -> border-amber-400 + Mail, Risk Score Details -> border-red-500 + ShieldAlert, Final Summary -> border-primary + FileText",
-        "Export a helper function getArtifactStyle(title: string) that returns the style config or a default",
-        "Typecheck passes"
+        "Each artifact card uses border-l-4 with border color from getArtifactStyle(artifact.title).borderClass",
+        "Replaces current uniform border-gray-700 styling on artifact cards",
+        "Artifact icon from getArtifactStyle() displayed next to artifact title (h-4 w-4)",
+        "Typecheck passes",
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 3,
-      "passes": true,
-      "notes": "File to modify: src/lib/document-utils.ts. Data-only, no UI changes. Next story applies it to the component."
+      "passes": false,
+      "notes": "File: src/app/admin/_components/document-editor.tsx. Import getArtifactStyle from ~/lib/document-utils."
     },
     {
       "id": "US-004",
-      "title": "Apply artifact visual differentiation to sections",
-      "description": "As a user scanning a document page, I want each analysis section to have a distinct visual identity so that I can quickly find the type of content I'm looking for.",
+      "title": "Add published status badge to page header",
+      "description": "As an admin, I want to see a Draft/Published badge next to the document title so I know the visibility status at a glance.",
       "acceptanceCriteria": [
-        "Each artifact section in src/app/eo-summary/[slug]/_components/artifact-section.tsx displays a colored left border (border-l-4) using the artifactStyles config from US-003",
-        "Each artifact section title shows a Lucide icon (h-4 w-4) next to the title text in the CollapsibleTrigger",
-        "Border color applied to the content container div (the bg-muted box)",
-        "Colors work correctly in both light and dark themes",
+        "Badge appears next to the document title h1 in src/app/admin/documents/[id]/page.tsx",
+        "Published documents show green badge with 'Published' text using Badge component with default variant",
+        "Unpublished documents show muted/gray badge with 'Draft' text using Badge component with secondary variant",
+        "Uses existing Badge component from ~/components/ui/badge",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 4,
-      "passes": true,
-      "notes": "Depends on US-003. File to modify: src/app/eo-summary/[slug]/_components/artifact-section.tsx. Import getArtifactStyle from document-utils."
+      "passes": false,
+      "notes": "File: src/app/admin/documents/[id]/page.tsx"
     },
     {
       "id": "US-005",
-      "title": "Section preview text when collapsed",
-      "description": "As a user scanning a document page, I want to see a brief preview of each section's content when collapsed so that I can decide which sections to read without opening each one.",
+      "title": "Add NEXT_PUBLIC_WORKFLOW_API_URL environment variable",
+      "description": "As a developer, I need the workflow API base URL configurable via environment variable for deployment flexibility.",
       "acceptanceCriteria": [
-        "When an artifact section is collapsed, the first ~120 characters of content appear below the title in src/app/eo-summary/[slug]/_components/artifact-section.tsx",
-        "Preview text is plain text with markdown formatting stripped (use simple regex to remove markdown syntax)",
-        "Preview styled as text-sm text-muted-foreground truncate",
-        "Preview disappears when section is expanded",
-        "Preview does not add significant height to collapsed sections (single line, truncated)",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
+        "NEXT_PUBLIC_WORKFLOW_API_URL added to src/env.js client schema with z.string().url().default('http://localhost:3200')",
+        "Added to runtimeEnv mapping: NEXT_PUBLIC_WORKFLOW_API_URL: process.env.NEXT_PUBLIC_WORKFLOW_API_URL",
+        "Typecheck passes"
       ],
       "priority": 5,
-      "passes": true,
-      "notes": "File to modify: src/app/eo-summary/[slug]/_components/artifact-section.tsx"
+      "passes": false,
+      "notes": "File: src/env.js. Uses @t3-oss/env-nextjs createEnv pattern already in place."
     },
     {
       "id": "US-006",
-      "title": "Artifact section list with expand/collapse all",
-      "description": "As a user reading a document analysis, I want to expand or collapse all sections at once so that I can either read everything sequentially or scan just the headers.",
+      "title": "Create DocumentSidebar component with health score card",
+      "description": "As an admin, I want to see a completeness score for the current document in a collapsible sidebar card so I know what's missing.",
       "acceptanceCriteria": [
-        "Create new client component src/app/eo-summary/[slug]/_components/artifact-section-list.tsx that wraps all artifact sections and manages collective open/close state",
-        "Expand All and Collapse All buttons appear above the artifact sections using existing Button component with variant='outline' and size='sm'",
-        "Clicking Expand All opens all sections; clicking Collapse All closes all",
-        "Individual sections can still be toggled independently after a bulk action",
-        "URL param ?sections=all supported for expand all via link sharing",
-        "Existing openSections URL param pattern preserved for individual sections",
-        "Update src/app/eo-summary/[slug]/page.tsx to use the new ArtifactSectionList wrapper instead of directly mapping artifacts",
-        "ArtifactSection component updated to accept isOpen and onToggle props from parent instead of managing own state",
+        "New client component created at src/app/admin/_components/document-sidebar.tsx",
+        "Health score card at top of sidebar using Card and Collapsible components",
+        "SVG circular progress ring with percentage (0-100) displayed in center",
+        "Color coded: green (80-100), yellow (60-79), orange (40-59), red (0-39)",
+        "Collapsed view shows ring + percentage only",
+        "Expanded view shows breakdown by category with mini progress bars and lists missing items",
+        "Uses calculateDocumentHealth from ~/lib/document-utils",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 6,
-      "passes": true,
-      "notes": "Files to create: src/app/eo-summary/[slug]/_components/artifact-section-list.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx, src/app/eo-summary/[slug]/_components/artifact-section.tsx. This lifts open/close state from ArtifactSection to the parent wrapper."
+      "passes": false,
+      "notes": "File: src/app/admin/_components/document-sidebar.tsx. Props: document: Document & { documentArtifact: DocumentArtifact[] }. SVG ring uses stroke-dasharray/stroke-dashoffset technique."
     },
     {
       "id": "US-007",
-      "title": "Migrate hardcoded grays to theme tokens",
-      "description": "As a developer maintaining the codebase, I want all color values to use theme tokens so that the warm design tone applies consistently and theme switching works properly.",
+      "title": "Add artifact navigation list to sidebar",
+      "description": "As an admin, I want all 9 standard artifact types listed in the sidebar with present/missing indicators so I can quickly assess coverage and jump to any section.",
       "acceptanceCriteria": [
-        "All instances of bg-gray-200 replaced with bg-muted across all component files",
-        "All instances of dark:bg-gray-800 removed (handled by bg-muted dark mode)",
-        "All instances of text-gray-500 and text-gray-600 replaced with text-muted-foreground",
-        "All instances of dark:text-gray-400 removed (handled by text-muted-foreground)",
-        "All instances of border-gray-700 and dark:border-gray-700 replaced with border-border",
-        "No hardcoded gray Tailwind classes remain in any component file (except where intentionally distinct from theme, e.g. specific badge colors)",
+        "Sidebar lists 'Document Details' entry at top, followed by all 9 artifacts from artifactOrder",
+        "Each artifact shows its icon and border color from getArtifactStyle()",
+        "Present artifacts show a filled dot indicator; missing artifacts show a muted/hollow indicator",
+        "Clicking a present artifact smooth-scrolls to that section using scrollIntoView({ behavior: 'smooth', block: 'start' })",
+        "Clicking 'Document Details' scrolls to #document-details",
+        "Uses artifactSectionId() helper for consistent ID targeting",
         "Typecheck passes",
-        "Verify in browser using dev-browser skill — check both light and dark themes"
+        "Verify in browser using dev-browser skill"
       ],
       "priority": 7,
-      "passes": true,
-      "notes": "Search all files in src/app/_components/ and src/app/eo-summary/ for bg-gray, text-gray, border-gray, dark:bg-gray, dark:text-gray, dark:border-gray patterns."
+      "passes": false,
+      "notes": "File: src/app/admin/_components/document-sidebar.tsx. Add to existing component from US-006."
     },
     {
       "id": "US-008",
-      "title": "Accessibility fixes for interactive elements",
-      "description": "As a user relying on assistive technology, I want all interactive elements to be semantic and accessible so that I can navigate and use the site effectively.",
+      "title": "Add active section highlighting to sidebar",
+      "description": "As an admin, I want the sidebar to highlight which section I'm currently viewing so I maintain orientation while scrolling.",
       "acceptanceCriteria": [
-        "All div elements with onClick handlers in ArtifactActions (src/app/eo-summary/[slug]/_components/artifact-section.tsx) converted to semantic button elements",
-        "Each action button has an aria-label attribute: 'Copy link to section', 'Copy content', 'Share', 'Send via ResistBot'",
-        "animate-pulse on severe risk scores (8-10) in src/app/_components/risk-score.tsx replaced with static visual indicator: ring-2 ring-offset-2 using the risk color",
-        "All action buttons have visible focus styles via focus-visible ring",
+        "Active sidebar nav item has a left border accent and subtle background highlight",
+        "Active item determined by IntersectionObserver with rootMargin '-20% 0px -70% 0px'",
+        "Highlight updates smoothly as user scrolls through sections",
+        "Only one item highlighted at a time",
+        "Smooth 150ms transition on highlight changes",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 8,
-      "passes": true,
-      "notes": "Files to modify: src/app/eo-summary/[slug]/_components/artifact-section.tsx (ArtifactActions component), src/app/_components/risk-score.tsx"
+      "passes": false,
+      "notes": "File: src/app/admin/_components/document-sidebar.tsx. Follow IntersectionObserver pattern from src/app/eo-summary/[slug]/_components/sticky-document-header.tsx."
     },
     {
       "id": "US-009",
-      "title": "Homepage full-text search component",
-      "description": "As a user looking for a specific document, I want to search across all documents from the homepage so that I can quickly find relevant analysis.",
+      "title": "Restructure page layout to sidebar + main content",
+      "description": "As an admin, I want the document detail page to have a sidebar + main content layout so navigation tools are always visible while I scroll.",
       "acceptanceCriteria": [
-        "Create new client component src/app/_components/document-search.tsx with a prominent search input with Search icon (Lucide)",
-        "Input calls existing api.document.search tRPC procedure with 300ms debounce",
-        "Results appear in a dropdown/popover below the search input",
-        "Each result shows: title, risk score badge (reuse RiskScore component), type badge (reuse DocumentTypeBadge), and truncated short summary",
-        "Clicking a result navigates to /eo-summary/{slug}?sections=ELI5",
-        "Results capped at 30 items maximum",
-        "Empty query shows no results",
-        "No results state shows 'No documents found' message",
-        "Search input accessible with keyboard (arrow keys to navigate results, Enter to select)",
-        "Add the search component to the homepage in src/app/page.tsx, placed above the data table",
+        "Page uses flex layout: sidebar (280px, left) + main content (flex-1) with gap-6",
+        "Sidebar wrapper uses sticky top-4 self-start max-h-[calc(100vh-2rem)] overflow-y-auto",
+        "Main content area uses min-w-0 flex-1 and retains all existing functionality",
+        "Sidebar hidden below lg breakpoint via hidden lg:block; single-column layout preserved on mobile/tablet",
+        "Dark mode renders correctly",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 9,
-      "passes": true,
-      "notes": "Files to create: src/app/_components/document-search.tsx. Files to modify: src/app/page.tsx. Reuses existing document.search tRPC procedure from src/server/api/routers/document.ts which is currently unused in frontend."
+      "passes": false,
+      "notes": "File: src/app/admin/documents/[id]/page.tsx. Import DocumentSidebar component. Wrap AdjacentDocs + DocumentEditor in a flex container with sidebar."
     },
     {
       "id": "US-010",
-      "title": "Sticky sidebar table of contents (desktop)",
-      "description": "As a desktop user reading a long document analysis, I want a persistent table of contents sidebar so that I can see all available sections and jump to any one without scrolling.",
+      "title": "Add artifact generation buttons to sidebar",
+      "description": "As an admin, I want to generate missing artifacts directly from the sidebar via the workflow API so I can quickly fill in content.",
       "acceptanceCriteria": [
-        "Create new component src/app/eo-summary/[slug]/_components/table-of-contents.tsx that renders a vertical list of section links",
-        "TOC items derived from artifactOrder (from src/lib/document-utils.ts) filtered to only artifacts present on current document",
-        "Document page artifact area in src/app/eo-summary/[slug]/page.tsx uses two-column grid layout: md:grid md:grid-cols-[200px_1fr] md:gap-6",
-        "TOC column is sticky: sticky top-4 so it stays visible during scroll",
-        "TOC is collapsible on desktop: a toggle button collapses to a narrow column showing longer dashes for section headings and shorter dashes for any subsections",
-        "Active section highlighted with a left-border accent using IntersectionObserver",
-        "Clicking a TOC item scrolls to the section AND opens it if collapsed (requires integration with ArtifactSectionList from US-006)",
-        "Risk score badge and document type badge displayed at top of TOC for quick reference",
-        "TOC hidden on mobile (only visible at md breakpoint and above)",
+        "Missing artifacts in sidebar show a small 'Generate' icon button",
+        "Clicking Generate calls GET ${NEXT_PUBLIC_WORKFLOW_API_URL}/document/<route>?documentId=<id> using env var from src/env.js",
+        "Route mapping: ELI5→/document/eli5, Key Points→/document/key-points, Constitutional Considerations→/document/constitutional-considerations, Take Action→/document/action-plan, Social Post→/document/social-post, Letter of Concern→/document/resist-letter, Risk Score Details→/document/score, Final Summary→/document/final-summary",
+        "Areas of Concern shows disabled generate button with tooltip 'Deprecated' (no API route)",
+        "While generating, button shows a spinner/loading state",
+        "On success, page refreshes via router.refresh() and artifact appears in nav and editor",
+        "On error, toast notification shows the error message using sonner",
+        "Generate All Missing button at bottom of artifact nav list calls GET /document/run-all?documentId=<id>",
         "Typecheck passes",
         "Verify in browser using dev-browser skill"
       ],
       "priority": 10,
-      "passes": true,
-      "notes": "Depends on US-006 (ArtifactSectionList) for controlling section open/close. Files to create: src/app/eo-summary/[slug]/_components/table-of-contents.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
+      "passes": false,
+      "notes": "File: src/app/admin/_components/document-sidebar.tsx. Add artifact route mapping as a const record. Use fetch() for API calls. Import env from ~/env."
     },
     {
       "id": "US-011",
-      "title": "Mobile floating TOC with bottom sheet",
-      "description": "As a mobile user reading a long document, I want a floating button that opens a section navigator so that I can jump between sections without scrolling back to the top.",
+      "title": "Add keyboard shortcut for edit mode toggle",
+      "description": "As a power user, I want to press Ctrl+E to toggle edit mode on the document details section without reaching for the mouse.",
       "acceptanceCriteria": [
-        "Install shadcn sheet component via: pnpm dlx shadcn@latest add sheet",
-        "Create new component src/app/eo-summary/[slug]/_components/mobile-toc-sheet.tsx",
-        "FAB positioned at fixed bottom-4 right-4 z-50 with List icon (Lucide), only visible below md breakpoint (md:hidden)",
-        "Tapping FAB opens a bottom sheet listing all artifact sections present on the document",
-        "Each sheet item shows the artifact icon and title (using artifactStyles from US-003)",
-        "Tapping a sheet item scrolls to the section, opens it if collapsed, and closes the sheet",
-        "Document page has pb-16 padding on mobile to prevent content behind the FAB",
-        "Sheet is accessible: can be closed with swipe down or close button",
-        "Add the mobile TOC component to src/app/eo-summary/[slug]/page.tsx",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 11,
-      "passes": true,
-      "notes": "Depends on US-003 (artifactStyles) and US-006 (ArtifactSectionList). Files to create: src/app/eo-summary/[slug]/_components/mobile-toc-sheet.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
-    },
-    {
-      "id": "US-012",
-      "title": "Homepage hero section and stat cards",
-      "description": "As a first-time visitor to the homepage, I want to see a professional, informative hero section so that I immediately understand the site's purpose and can start exploring.",
-      "acceptanceCriteria": [
-        "Create new component src/app/_components/hero-section.tsx that replaces the current personal intro paragraph in src/app/page.tsx",
-        "Hero contains: large serif heading (e.g., 'Track the Impact of Executive Orders'), concise sans-serif subheading (1-2 sentences, third person, not first person), and the search component from US-009",
-        "Create new component src/app/_components/stat-card.tsx built on existing Card component: icon + large number + label",
-        "Stats bar with 3 stat cards showing: total documents tracked, high-risk count (risk >= 5), date of most recent update — all server-rendered via props",
-        "Personal 'I built this' text removed from homepage (it already exists on the About page)",
-        "Hero looks professional in both light and dark themes",
-        "Responsive: stats stack vertically on mobile, horizontal on desktop",
-        "Update src/app/page.tsx to use the new hero-section component",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 12,
-      "passes": true,
-      "notes": "Depends on US-009 (search component). Files to create: src/app/_components/hero-section.tsx, src/app/_components/stat-card.tsx. Files to modify: src/app/page.tsx"
-    },
-    {
-      "id": "US-013",
-      "title": "Homepage filter bar for data table",
-      "description": "As a user browsing documents, I want to filter the data table by document type and risk level so that I can focus on the specific content I care about.",
-      "acceptanceCriteria": [
-        "Document type filter added to src/app/_components/document-table/data-table.tsx using existing Select component with options: All Types, Executive Order, Fact Sheet, Remarks, Legislation, Other",
-        "Risk level filter using existing Select component with options: All Risk Levels, Low (0-2), Moderate (3-4), Elevated (5-6), High (7-8), Severe (9-10)",
-        "Filters placed inline with existing search input in flex flex-wrap gap-2 layout",
-        "Filter state synced to URL params (?type=EXECUTIVE_ORDER&risk=high) following existing pattern for sort/search/page in the same file",
-        "Section heading 'All Documents' added above the table",
-        "Results count shown: 'Showing X of Y documents'",
-        "Changing a filter resets pagination to page 1",
-        "Filters work in combination with existing search and sort",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 13,
-      "passes": true,
-      "notes": "File to modify: src/app/_components/document-table/data-table.tsx. Follow existing URL state sync pattern already in this file."
-    },
-    {
-      "id": "US-014",
-      "title": "Redesign high-risk alert section and document cards",
-      "description": "As a user viewing the homepage, I want the high-risk documents section to feel like a dashboard alert and the cards to convey more useful information at a glance.",
-      "acceptanceCriteria": [
-        "Yellow warning box in src/app/page.tsx replaced with structured alert panel using AlertTriangle icon (Lucide) + 'High Risk Documents' header",
-        "High-risk count displayed as a large number with label, not buried in a sentence",
-        "Document cards in src/app/_components/document-card.tsx enhanced: DocumentTypeBadge added, date signed shown as small detail, left-border color accent based on risk level (using risk score color logic), 'Read More' ghost button removed (entire card is already a clickable link)",
-        "Alert panel and cards look professional in both light and dark themes",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 14,
-      "passes": true,
-      "notes": "Files to modify: src/app/page.tsx, src/app/_components/document-card.tsx"
-    },
-    {
-      "id": "US-015",
-      "title": "Related documents tRPC procedure",
-      "description": "As a developer, I need a backend procedure to fetch related documents so the frontend can display them on document pages.",
-      "acceptanceCriteria": [
-        "New tRPC procedure document.getRelated added to src/server/api/routers/document.ts",
-        "Input schema: { documentId: z.number(), type: z.nativeEnum(DocumentType), riskScore: z.number() }",
-        "Returns up to 4 published documents of same type OR similar risk score (+/-1), excluding the current document, ordered by dateSigned desc",
-        "Falls back to highest-risk published documents if no same-type matches found",
-        "Response includes a reason field indicating match type: 'type' or 'risk'",
+        "Ctrl+E (or Cmd+E on Mac) toggles the document details edit mode",
+        "Only active when not already in a text input, textarea, or editing an artifact",
+        "Uses useEffect with keydown listener checking e.ctrlKey || e.metaKey and e.key === 'e'",
+        "Calls e.preventDefault() to prevent browser default behavior",
         "Typecheck passes"
       ],
-      "priority": 15,
-      "passes": true,
-      "notes": "File to modify: src/server/api/routers/document.ts. Backend only, no UI changes. The reason field enables the frontend to show 'More Executive Orders' vs 'Similar Risk Level'."
-    },
-    {
-      "id": "US-016",
-      "title": "Related documents UI section on document pages",
-      "description": "As a user reading a document analysis, I want to see related documents so that I can explore connected executive orders and legislation without returning to the homepage.",
-      "acceptanceCriteria": [
-        "Create new component src/app/eo-summary/[slug]/_components/related-documents.tsx",
-        "Component calls document.getRelated tRPC procedure from US-015",
-        "Uses grid of existing DocumentCard components (reuse, don't duplicate)",
-        "Grid responsive: 1 column on mobile, 2 on tablet, 4 on desktop",
-        "Section title indicates the relation reason derived from the procedure's reason field (e.g., 'More Executive Orders' when matched by type, 'Similar Risk Level' when matched by risk)",
-        "Section placed in src/app/eo-summary/[slug]/page.tsx after artifact sections, before prev/next navigation",
-        "Section hidden if no related documents exist",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 16,
-      "passes": true,
-      "notes": "Depends on US-015. Files to create: src/app/eo-summary/[slug]/_components/related-documents.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
-    },
-    {
-      "id": "US-017",
-      "title": "Site context banner for direct-landing users",
-      "description": "As a user who arrived from a social media link, I want a brief introduction to the site so that I understand what Slak.me is and can explore further.",
-      "acceptanceCriteria": [
-        "Create new component src/app/eo-summary/[slug]/_components/site-context-banner.tsx",
-        "Banner appears only when document.referrer does not match the current site domain (or is empty)",
-        "Banner text: 'Slak.me provides independent analysis of executive orders and legislation.'",
-        "Banner includes two link buttons: 'Browse All Documents' (links to /) and 'About' (links to /about)",
-        "Dismiss button (X icon) hides the banner and saves dismissal to localStorage key 'slakme-banner-dismissed'",
-        "Banner does not reappear after dismissal (persists across page navigations)",
-        "Banner placed in src/app/eo-summary/[slug]/page.tsx between breadcrumbs and document title",
-        "Styled with bg-muted background, border, and rounded-md for consistency",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 17,
-      "passes": true,
-      "notes": "Files to create: src/app/eo-summary/[slug]/_components/site-context-banner.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
-    },
-    {
-      "id": "US-018",
-      "title": "Risk score size variants and tooltip",
-      "description": "As a user viewing document details, I want a more informative risk score visualization so that I can immediately understand the severity and meaning of the score.",
-      "acceptanceCriteria": [
-        "Install shadcn tooltip component via: pnpm dlx shadcn@latest add tooltip",
-        "Refactor src/app/_components/risk-score.tsx to support size prop: 'compact' (default) and 'full'",
-        "Compact variant: circle increased to h-8 w-8 with text-sm font-bold. Scores >= 7 get subtle ring-2 glow in risk color",
-        "Full variant: displays score at text-3xl font-bold, risk level label below (e.g., 'High'), horizontal meter bar (colored div with width proportional to score on 0-10 scale)",
-        "Tooltip on hover (both variants) explains the score range meaning (e.g., 'High Risk (7/10): This document poses significant constitutional concerns')",
-        "Details pane in src/app/eo-summary/[slug]/_components/details-pane.tsx updated to use full variant",
-        "Table and cards continue using compact variant (no changes needed, compact is default)",
-        "Both variants work in light and dark themes",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 18,
-      "passes": true,
-      "notes": "Files to modify: src/app/_components/risk-score.tsx, src/app/eo-summary/[slug]/_components/details-pane.tsx"
-    },
-    {
-      "id": "US-019",
-      "title": "Improved prev/next navigation",
-      "description": "As a user finishing a document analysis, I want the prev/next navigation to be more informative and visually prominent so that I'm encouraged to continue exploring.",
-      "acceptanceCriteria": [
-        "Prev/next links in src/app/eo-summary/[slug]/page.tsx wrapped in Card-like containers with padding and hover effects",
-        "Each link shows: document title, risk score badge (compact), and document type badge",
-        "Clickable area covers the entire card container",
-        "Previous and Next labels clearly visible above the document title",
-        "Responsive: cards stack vertically on mobile, side-by-side on desktop",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 19,
-      "passes": true,
-      "notes": "File to modify: src/app/eo-summary/[slug]/page.tsx. The getAdjacentDocuments tRPC call already returns the needed data."
-    },
-    {
-      "id": "US-020",
-      "title": "Summary section enhancement",
-      "description": "As a user viewing a document, I want the summary section to be visually distinct and informative so that I get the key context at a glance before diving into detailed sections.",
-      "acceptanceCriteria": [
-        "Summary section in src/app/eo-summary/[slug]/_components/summary-section.tsx uses Card component instead of plain div",
-        "Summary text rendered at text-lg for prominence",
-        "Quick stats row added below summary: number of analysis sections available, document type badge, risk score badge",
-        "Card visually distinct from artifact sections (no left-border color treatment)",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 20,
-      "passes": true,
-      "notes": "File to modify: src/app/eo-summary/[slug]/_components/summary-section.tsx. May need additional props from parent page for section count and document metadata."
-    },
-    {
-      "id": "US-021",
-      "title": "Sticky document header on scroll",
-      "description": "As a user scrolling through a long document page, I want a compact sticky header to appear so that I always know which document I'm reading and can quickly navigate.",
-      "acceptanceCriteria": [
-        "Create new component src/app/eo-summary/[slug]/_components/sticky-document-header.tsx using IntersectionObserver on the main document title",
-        "When the title scrolls out of view, a slim sticky bar appears at the top of the viewport",
-        "Sticky bar contains: truncated document title, risk score badge (compact), and a 'Jump to section' dropdown (using existing DropdownMenu component)",
-        "Jump to section dropdown lists all artifact sections with their icons from artifactStyles",
-        "Styled: fixed top-0 left-0 right-0 z-40 bg-background/95 backdrop-blur border-b px-4 py-2",
-        "Sticky bar smoothly transitions in/out (not jarring)",
-        "Sticky bar does not conflict with the main site header",
-        "Hidden on mobile where the floating TOC FAB serves a similar purpose (md:hidden on mobile, visible md and above)",
-        "Add sticky header component to src/app/eo-summary/[slug]/page.tsx",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 21,
-      "passes": true,
-      "notes": "Files to create: src/app/eo-summary/[slug]/_components/sticky-document-header.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
-    },
-    {
-      "id": "US-022",
-      "title": "Typography and color refinements",
-      "description": "As a user reading long-form analysis content, I want improved typography and color consistency so that content is comfortable to read and the site feels polished.",
-      "acceptanceCriteria": [
-        "Roboto Serif font weight '700' added to the font loading configuration in src/app/layout.tsx (currently only '400' loaded, headings are faux-bolded)",
-        "leading-relaxed (line-height 1.625) applied to markdown prose content areas in the artifact-section component for readability",
-        "CSS variable --font-cactus renamed to --font-heading in layout.tsx and src/styles/globals.css (update all references)",
-        "Semantic artifact color tokens added to src/styles/globals.css: --color-artifact-info, --color-artifact-warning, --color-artifact-danger, --color-artifact-action, --color-artifact-share",
-        "Card background color adjusted in globals.css to match warm theme tone: light mode hsl(36, 20%, 99%), dark mode hsl(240, 10%, 13%)",
-        "All heading font weights render correctly (no browser faux-bolding)",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill — check both light and dark themes"
-      ],
-      "priority": 22,
-      "passes": true,
-      "notes": "Files to modify: src/app/layout.tsx, src/styles/globals.css, src/app/eo-summary/[slug]/_components/artifact-section.tsx"
-    },
-    {
-      "id": "US-023",
-      "title": "Details pane improvements",
-      "description": "As a user viewing document metadata, I want the details pane to be visually consistent and make the risk score prominent so that key information is immediately clear.",
-      "acceptanceCriteria": [
-        "Details pane in src/app/eo-summary/[slug]/_components/details-pane.tsx uses Card component for visual consistency",
-        "Risk score displayed using full variant from US-018 (large number + label + meter)",
-        "Subtle dividers (border or spacing) between metadata groups: risk score, signer info, dates, type/links",
-        "Metadata labels use text-muted-foreground (not hardcoded gray)",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 23,
-      "passes": true,
-      "notes": "Depends on US-018 (risk score full variant). File to modify: src/app/eo-summary/[slug]/_components/details-pane.tsx"
-    },
-    {
-      "id": "US-024",
-      "title": "DataTable visual polish",
-      "description": "As a user browsing the document table, I want visual refinements that improve scannability and provide context about the result set.",
-      "acceptanceCriteria": [
-        "Alternating row background colors added to src/app/_components/document-table/data-table.tsx: even:bg-muted/30",
-        "Search icon (Search from Lucide) rendered inside the filter input as a visual affordance",
-        "Results count displayed below the table: 'Showing X of Y documents'",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 24,
-      "passes": true,
-      "notes": "File to modify: src/app/_components/document-table/data-table.tsx"
-    },
-    {
-      "id": "US-025",
-      "title": "Footer enhancement",
-      "description": "As a user reaching the bottom of a page, I want a well-structured footer that reinforces the site's identity and makes it easy to support the project.",
-      "acceptanceCriteria": [
-        "Footer in src/app/_components/theme/footer.tsx restructured into two sections: top section with brief mission statement, bottom section with links and legal disclaimer",
-        "Tagline 'Independent Executive Order Analysis' included in footer for brand reinforcement",
-        "Buy me a coffee link given more visual weight (larger, possibly with a Button component styled as secondary)",
-        "Footer links use text-muted-foreground (not hardcoded gray)",
-        "Typecheck passes",
-        "Verify in browser using dev-browser skill"
-      ],
-      "priority": 25,
-      "passes": true,
-      "notes": "File to modify: src/app/_components/theme/footer.tsx"
+      "priority": 11,
+      "passes": false,
+      "notes": "File: src/app/admin/_components/document-editor.tsx. Check document.activeElement.tagName to skip when in input/textarea."
     }
   ]
 }

@@ -53,6 +53,14 @@ export const artifactOrder = [
   // "Original Document",
 ];
 
+export const RISK_RANGES: Record<string, [number, number]> = {
+  low: [0, 2],
+  moderate: [3, 4],
+  elevated: [5, 6],
+  high: [7, 8],
+  severe: [9, 10],
+};
+
 export function getArtifactByTitle(
   document: Document & { documentArtifact: DocumentArtifact[] },
   title: string,
