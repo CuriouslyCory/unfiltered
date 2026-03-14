@@ -10,6 +10,7 @@ import { auth } from "~/server/auth";
 import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { DocumentBreadcrumbs } from "./_components/breadcrumbs";
+import { RelatedDocuments } from "./_components/related-documents";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -91,6 +92,11 @@ export default async function Page({ params, searchParams }: Props) {
         documentTitle={document.title}
         riskScore={document.riskScore}
         documentType={document.type}
+      />
+      <RelatedDocuments
+        documentId={document.id}
+        type={document.type}
+        riskScore={document.riskScore ?? 0}
       />
       <div className="mt-8 flex items-center justify-between border-t pt-8">
         {adjacentDocs.previous ? (
