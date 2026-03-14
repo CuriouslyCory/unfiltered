@@ -114,7 +114,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/app/admin/_components/document-sidebar.tsx. Add to existing component from US-006."
     },
     {
@@ -131,7 +131,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 8,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/app/admin/_components/document-sidebar.tsx. Follow IntersectionObserver pattern from src/app/eo-summary/[slug]/_components/sticky-document-header.tsx."
     },
     {
@@ -148,7 +148,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/app/admin/documents/[id]/page.tsx. Import DocumentSidebar component. Wrap AdjacentDocs + DocumentEditor in a flex container with sidebar."
     },
     {

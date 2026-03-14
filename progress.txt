@@ -192,3 +192,38 @@
   - Health color thresholds: green (80+), yellow (60-79), orange (40-59), red (0-39)
   - Component is not yet integrated into the page layout — US-009 will add it to the document detail page
 ---
+
+## 2026-03-13 - US-007
+- What was implemented: Added artifact navigation list to DocumentSidebar with Document Details entry and all 9 standard artifacts
+- Files changed:
+  - src/app/admin/_components/document-sidebar.tsx (added Navigation card with scrollToSection, artifact icons/colors, present/missing indicators)
+- **Learnings for future iterations:**
+  - Renamed `document` prop destructuring to `doc` to avoid shadowing the global `document` object needed by `document.getElementById()`
+  - Used `style.borderClass.replace("border-", "text-")` to convert border color classes to text color classes for artifact icons
+  - Present artifacts get a filled green dot (`bg-green-500`); missing artifacts get a hollow dot (`border border-muted-foreground`) with reduced opacity
+  - Missing artifacts have `cursor-default opacity-50` and clicking them does nothing (no scroll target exists)
+---
+
+## 2026-03-13 - US-008
+- What was implemented: Added IntersectionObserver-based active section highlighting to DocumentSidebar navigation
+- Files changed:
+  - src/app/admin/_components/document-sidebar.tsx (added useEffect/useRef imports, IntersectionObserver with rootMargin '-20% 0px -70% 0px', activeSection state, border-l-2 + bg-muted/50 highlight with 150ms transition)
+- **Learnings for future iterations:**
+  - IntersectionObserver rootMargin '-20% 0px -70% 0px' creates a narrow detection band in the top 20-30% of viewport — good for "which section am I reading" detection
+  - Active highlight uses `border-l-2 border-primary bg-muted/50 pl-1.5` — the pl-1.5 compensates for the border width to prevent layout shift
+  - `transition-all duration-150` on all nav buttons ensures smooth highlight changes regardless of which item becomes active
+  - Observer depends on `doc.documentArtifact` to re-observe when artifacts change (e.g., after generation)
+  - eslint-disable for react-hooks/exhaustive-deps needed because `presentTitles` is a Set created each render — the dep on `doc.documentArtifact` is sufficient
+---
+
+## 2026-03-13 - US-009
+- What was implemented: Restructured admin document detail page to sidebar + main content flex layout
+- Files changed:
+  - src/app/admin/documents/[id]/page.tsx (imported DocumentSidebar, wrapped content in flex layout with sticky sidebar)
+- **Learnings for future iterations:**
+  - DocumentSidebar is a client component imported into a server component page — no issues since it receives serializable props
+  - Sidebar uses `hidden lg:block` for responsive behavior — single-column layout preserved below lg breakpoint
+  - Sticky sidebar wrapper uses `sticky top-4` with `max-h-[calc(100vh-2rem)] overflow-y-auto` for scroll containment
+  - The `self-start` class is on the inner div (not aside) to work with the sticky positioning
+  - Pre-existing lint error on line 86 (`searchParam || undefined` should use `??`) — not from this story
+---
