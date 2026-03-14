@@ -8,7 +8,7 @@ import {
 import { artifactOrder, RISK_RANGES } from "~/lib/document-utils";
 import { getDocumentFts } from "~/generated/prisma/sql";
 
-const adminSortColumns = ["id", "title", "createdAt", "updatedAt"] as const;
+const adminSortColumns = ["id", "title", "createdAt", "updatedAt", "riskScore"] as const;
 
 export const documentRouter = createTRPCRouter({
   getAdjacentDocuments: publicProcedure
@@ -268,6 +268,7 @@ export const documentRouter = createTRPCRouter({
         risk: z
           .enum(["low", "moderate", "elevated", "high", "severe"])
           .optional(),
+        published: z.boolean().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
@@ -296,6 +297,9 @@ export const documentRouter = createTRPCRouter({
           }
         }
       }
+      if (input.published !== undefined) {
+        filters.push({ published: input.published });
+      }
 
       const where: Prisma.DocumentWhereInput =
         filters.length > 0 ? { AND: filters } : {};
@@ -303,7 +307,7 @@ export const documentRouter = createTRPCRouter({
       // Fetch all matching documents with sortable fields
       const allDocs = await ctx.db.document.findMany({
         where,
-        select: { id: true, title: true, createdAt: true, updatedAt: true },
+        select: { id: true, title: true, createdAt: true, updatedAt: true, riskScore: true },
       });
 
       // Sort in JavaScript to match TanStack Table's client-side sorting
@@ -315,7 +319,13 @@ export const documentRouter = createTRPCRouter({
         const bVal = b[sortCol];
 
         let cmp: number;
-        if (typeof aVal === "string" && typeof bVal === "string") {
+        if (aVal == null && bVal == null) {
+          cmp = 0;
+        } else if (aVal == null) {
+          cmp = -1; // nulls sort before non-null (treated as lowest)
+        } else if (bVal == null) {
+          cmp = 1;
+        } else if (typeof aVal === "string" && typeof bVal === "string") {
           cmp = aVal.localeCompare(bVal, undefined, { sensitivity: "base" });
         } else if (aVal instanceof Date && bVal instanceof Date) {
           cmp = aVal.getTime() - bVal.getTime();
