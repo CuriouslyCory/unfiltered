@@ -20,13 +20,18 @@ export default function Header() {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   return (
-    <header className="mb-12 mt-4">
+    <header className="mb-8 mt-4 border-b border-border pb-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold sm:text-4xl">
-          <Link href="/">
-            <span>Slak.me</span>
-          </Link>
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold sm:text-4xl">
+            <Link href="/">
+              <span>Slak.me</span>
+            </Link>
+          </h1>
+          <p className="text-xs text-muted-foreground">
+            Independent Executive Order Analysis
+          </p>
+        </div>
         <div className="flex items-center gap-4">
           <nav className="hidden items-center gap-4 md:flex">
             {navigationItems.map((item) => (
