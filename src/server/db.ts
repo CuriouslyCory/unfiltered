@@ -3,9 +3,15 @@ import { PrismaPg } from "@prisma/adapter-pg";
 
 import { env } from "~/env";
 
+// In Prisma v7, the pg driver handles TLS (not the Rust engine).
+// pg's connection-parameters.js merges parsed connectionString OVER config,
+// so ssl options in config are overwritten. Appending sslmode=no-verify to
+// the URL is the only reliable way to disable cert validation.
+const connectionString = new URL(env.DATABASE_URL);
+connectionString.searchParams.set("sslmode", "no-verify");
+
 const adapter = new PrismaPg({
-  connectionString: env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  connectionString: connectionString.toString(),
 });
 
 const createPrismaClient = () =>
