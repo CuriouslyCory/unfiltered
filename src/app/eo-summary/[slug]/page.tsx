@@ -1,8 +1,8 @@
 import type { Metadata, ResolvingMetadata } from "next";
 import { api } from "~/trpc/server";
 import { toTitleCase } from "~/lib/utils";
-import { ArtifactSection } from "./_components/artifact-section";
 import { artifactOrder, getArtifactByTitle } from "~/lib/document-utils";
+import { ArtifactSectionList } from "./_components/artifact-section-list";
 import { DetailsPane } from "./_components/details-pane";
 import SummarySection from "./_components/summary-section";
 import UpdatesSection from "./_components/updates-section";
@@ -83,19 +83,13 @@ export default async function Page({ params, searchParams }: Props) {
         <SummarySection document={document} />
       </section>
       {updates && <UpdatesSection updates={updates} />}
-      <div className="flex flex-col gap-y-8">
-        {artifactOrder
+      <ArtifactSectionList
+        artifacts={artifactOrder
           .map((title) => getArtifactByTitle(document, title))
-          .filter((artifact) => artifact !== undefined)
-          .map((artifact) => (
-            <ArtifactSection
-              key={artifact.id}
-              artifact={artifact}
-              isOpen={openSections.includes(artifact.title)}
-              documentTitle={document.title}
-            />
-          ))}
-      </div>
+          .filter((artifact) => artifact !== undefined)}
+        initialOpenSections={openSections}
+        documentTitle={document.title}
+      />
       <div className="mt-8 flex items-center justify-between border-t pt-8">
         {adjacentDocs.previous ? (
           <Link

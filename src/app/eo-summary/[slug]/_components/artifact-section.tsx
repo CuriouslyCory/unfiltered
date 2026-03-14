@@ -169,6 +169,7 @@ function ArtifactActions({
 interface ArtifactSectionProps {
   artifact: DocumentArtifact;
   isOpen?: boolean;
+  onToggle?: (open: boolean) => void;
   documentTitle: string;
 }
 
@@ -195,9 +196,18 @@ function stripMarkdown(text: string): string {
 export function ArtifactSection({
   artifact,
   isOpen = false,
+  onToggle,
   documentTitle,
 }: ArtifactSectionProps) {
-  const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(isOpen);
+  const [internalOpen, setInternalOpen] = useState(isOpen);
+  const isCollapsibleOpen = onToggle !== undefined ? isOpen : internalOpen;
+  const handleOpenChange = (open: boolean) => {
+    if (onToggle) {
+      onToggle(open);
+    } else {
+      setInternalOpen(open);
+    }
+  };
   const artifactStyle = getArtifactStyle(artifact.title);
   const ArtifactIcon = artifactStyle.icon;
 
@@ -222,7 +232,7 @@ export function ArtifactSection({
   return (
     <Collapsible
       open={isCollapsibleOpen}
-      onOpenChange={setIsCollapsibleOpen}
+      onOpenChange={handleOpenChange}
       id={artifact.title.toLowerCase().replace(/\s+/g, "-")}
     >
       <CollapsibleTrigger className="w-full">
