@@ -33,6 +33,7 @@ export const columns: ColumnDef<Document>[] = [
   },
   {
     accessorKey: "riskScore",
+    filterFn: "riskRange" as never,
     header: ({ column }) => {
       return (
         <Button

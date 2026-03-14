@@ -62,9 +62,12 @@ export default async function Home() {
           </div>
         </div>
 
-        <Suspense>
-          <DataTable columns={columns} data={documents} />
-        </Suspense>
+        <section>
+          <h2 className="mb-2 text-2xl font-bold">All Documents</h2>
+          <Suspense>
+            <DataTable columns={columns} data={documents} />
+          </Suspense>
+        </section>
       </main>
     </HydrateClient>
   );
