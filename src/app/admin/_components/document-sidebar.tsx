@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { type Document, type DocumentArtifact } from "~/generated/prisma/client";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/app/_components/ui/card";
 import {
   Collapsible,
@@ -10,7 +10,10 @@ import {
   CollapsibleTrigger,
 } from "~/app/_components/ui/collapsible";
 import {
+  artifactOrder,
+  artifactSectionId,
   calculateDocumentHealth,
+  getArtifactStyle,
   type HealthScoreResult,
 } from "~/lib/document-utils";
 
@@ -104,9 +107,15 @@ function CategoryBreakdown({
   );
 }
 
-export function DocumentSidebar({ document }: DocumentSidebarProps) {
+function scrollToSection(id: string) {
+  const el = document.getElementById(id);
+  el?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+export function DocumentSidebar({ document: doc }: DocumentSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const health = calculateDocumentHealth(document);
+  const health = calculateDocumentHealth(doc);
+  const presentTitles = new Set(doc.documentArtifact.map((a) => a.title));
 
   return (
     <div className="space-y-4">
@@ -148,6 +157,53 @@ export function DocumentSidebar({ document }: DocumentSidebarProps) {
             </CardContent>
           </CollapsibleContent>
         </Collapsible>
+      </Card>
+
+      <Card>
+        <CardHeader className="p-4 pb-2">
+          <CardTitle className="text-sm">Navigation</CardTitle>
+        </CardHeader>
+        <CardContent className="px-2 pb-2">
+          <nav className="space-y-0.5">
+            <button
+              onClick={() => scrollToSection("document-details")}
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+            >
+              <FileText className="h-4 w-4 text-muted-foreground" />
+              <span>Document Details</span>
+            </button>
+            {artifactOrder.map((title) => {
+              const style = getArtifactStyle(title);
+              const ArtifactIcon = style.icon;
+              const isPresent = presentTitles.has(title);
+
+              return (
+                <button
+                  key={title}
+                  onClick={() =>
+                    isPresent &&
+                    scrollToSection(artifactSectionId(title))
+                  }
+                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
+                    isPresent
+                      ? "hover:bg-muted"
+                      : "cursor-default opacity-50"
+                  }`}
+                >
+                  <ArtifactIcon
+                    className={`h-4 w-4 ${style.borderClass.replace("border-", "text-")}`}
+                  />
+                  <span className="flex-1 truncate">{title}</span>
+                  <span
+                    className={`h-2 w-2 shrink-0 rounded-full ${
+                      isPresent ? "bg-green-500" : "border border-muted-foreground"
+                    }`}
+                  />
+                </button>
+              );
+            })}
+          </nav>
+        </CardContent>
       </Card>
     </div>
   );
