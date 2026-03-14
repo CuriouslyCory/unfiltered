@@ -23,7 +23,7 @@ export function RiskScore({ score, className = "" }: RiskScoreProps) {
     if (score <= 4) return "bg-yellow-400 text-black";
     if (score <= 6) return "bg-orange-500 text-white";
     if (score <= 8) return "bg-red-500 text-white";
-    return "bg-red-600 animate-pulse text-white";
+    return "bg-red-600 ring-2 ring-red-600 ring-offset-2 text-white";
   };
 
   // Size and formatting classes

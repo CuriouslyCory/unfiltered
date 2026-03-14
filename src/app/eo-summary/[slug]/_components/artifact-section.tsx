@@ -69,28 +69,30 @@ function ArtifactActions({
   // Common actions that appear for all artifacts
   const commonActions = (
     <>
-      <div
-        className="cursor-pointer hover:opacity-70"
+      <button
+        type="button"
+        className="cursor-pointer hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
         onClick={(e) => {
           e.stopPropagation();
           onCopyLink();
         }}
-        title="Copy link to section"
+        aria-label="Copy link to section"
       >
         <LinkIcon className="h-4 w-4" />
-      </div>
-      <div
-        className="cursor-pointer hover:opacity-70"
+      </button>
+      <button
+        type="button"
+        className="cursor-pointer hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
         onClick={(e) => {
           e.stopPropagation();
           onCopyContent();
         }}
-        title="Copy content"
+        aria-label="Copy content"
       >
         <Copy className="h-4 w-4" />
-      </div>
+      </button>
       <DropdownMenu>
-        <DropdownMenuTrigger title="Share">
+        <DropdownMenuTrigger aria-label="Share" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm">
           <ShareIcon size={16} />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-12 min-w-12">
@@ -137,16 +139,17 @@ function ArtifactActions({
 
     if (title.includes("letter") || title.includes("concern")) {
       return (
-        <div
-          className="cursor-pointer hover:opacity-70"
+        <button
+          type="button"
+          className="cursor-pointer hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
           onClick={(e) => {
             e.stopPropagation();
             handleResistBot();
           }}
-          title="Send via ResistBot"
+          aria-label="Send via ResistBot"
         >
           <Send className="h-4 w-4" />
-        </div>
+        </button>
       );
     }
 
