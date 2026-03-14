@@ -67,3 +67,90 @@ export function getArtifactByTitle(
 ) {
   return document.documentArtifact.find((artifact) => artifact.title === title);
 }
+
+export function artifactSectionId(title: string): string {
+  return `artifact-${title.toLowerCase().replace(/\s+/g, "-")}`;
+}
+
+type CategoryBreakdown = {
+  filled: string[];
+  missing: string[];
+  score: number;
+  max: number;
+};
+
+export type HealthScoreResult = {
+  score: number;
+  maxScore: 100;
+  breakdown: {
+    requiredFields: CategoryBreakdown;
+    optionalFields: CategoryBreakdown;
+    artifacts: CategoryBreakdown;
+    published: CategoryBreakdown;
+  };
+};
+
+export function calculateDocumentHealth(
+  document: Document & { documentArtifact: DocumentArtifact[] },
+): HealthScoreResult {
+  // Required fields: 35 pts (7 each)
+  const requiredFields: CategoryBreakdown = { filled: [], missing: [], score: 0, max: 35 };
+  const requiredChecks: { name: string; present: boolean }[] = [
+    { name: "title", present: !!document.title },
+    { name: "originalDocumentUrl", present: !!document.originalDocumentUrl },
+    { name: "dateSigned", present: !!document.dateSigned },
+    { name: "signer", present: !!document.signer },
+    { name: "type", present: !!document.type },
+  ];
+  for (const check of requiredChecks) {
+    if (check.present) {
+      requiredFields.filled.push(check.name);
+      requiredFields.score += 7;
+    } else {
+      requiredFields.missing.push(check.name);
+    }
+  }
+
+  // Optional fields: 10 pts (5 each)
+  const optionalFields: CategoryBreakdown = { filled: [], missing: [], score: 0, max: 10 };
+  const optionalChecks: { name: string; present: boolean }[] = [
+    { name: "shortSummary", present: !!document.shortSummary },
+    { name: "riskScore", present: document.riskScore != null },
+  ];
+  for (const check of optionalChecks) {
+    if (check.present) {
+      optionalFields.filled.push(check.name);
+      optionalFields.score += 5;
+    } else {
+      optionalFields.missing.push(check.name);
+    }
+  }
+
+  // Artifact coverage: 45 pts (5 per standard artifact)
+  const artifacts: CategoryBreakdown = { filled: [], missing: [], score: 0, max: 45 };
+  const presentTitles = new Set(document.documentArtifact.map((a) => a.title));
+  for (const title of artifactOrder) {
+    if (presentTitles.has(title)) {
+      artifacts.filled.push(title);
+      artifacts.score += 5;
+    } else {
+      artifacts.missing.push(title);
+    }
+  }
+
+  // Published: 10 pts
+  const published: CategoryBreakdown = {
+    filled: document.published ? ["published"] : [],
+    missing: document.published ? [] : ["published"],
+    score: document.published ? 10 : 0,
+    max: 10,
+  };
+
+  const score = requiredFields.score + optionalFields.score + artifacts.score + published.score;
+
+  return {
+    score,
+    maxScore: 100,
+    breakdown: { requiredFields, optionalFields, artifacts, published },
+  };
+}
