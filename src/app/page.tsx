@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { type Metadata } from "next";
+import { AlertTriangle } from "lucide-react";
 import { api, HydrateClient } from "~/trpc/server";
 import { columns } from "./_components/document-table/columns";
 import { DataTable } from "./_components/document-table/data-table";
@@ -46,21 +47,28 @@ export default async function Home() {
           lastUpdated={lastUpdated}
         />
 
-        <div className="mb-12">
-          <h2 className="mb-4 text-2xl font-bold">Highest Risk Score</h2>
-          <div className="mb-4 rounded-md border bg-yellow-100 p-4 dark:border-yellow-800 dark:bg-yellow-950">
-            <p className="font-semibold text-yellow-800 dark:text-yellow-200">
-              Currently tracking {highRiskCount} document
-              {highRiskCount === 1 ? "" : "s"} with high risk scores (5 or
-              higher)
-            </p>
+        <section className="mb-12">
+          <div className="mb-6 flex items-center gap-4 rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-900 dark:bg-orange-950/50">
+            <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/50">
+              <AlertTriangle className="h-6 w-6 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold">High Risk Documents</h2>
+              <p className="text-sm text-muted-foreground">
+                <span className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                  {highRiskCount}
+                </span>{" "}
+                document{highRiskCount === 1 ? "" : "s"} with risk score 5 or
+                higher
+              </p>
+            </div>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {highestRiskScoreDocuments.map((document) => (
               <DocumentCard key={document.id} document={document} />
             ))}
           </div>
-        </div>
+        </section>
 
         <section>
           <h2 className="mb-2 text-2xl font-bold">All Documents</h2>
