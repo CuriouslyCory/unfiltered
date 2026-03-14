@@ -4,6 +4,7 @@ import { api, HydrateClient } from "~/trpc/server";
 import { columns } from "./_components/document-table/columns";
 import { DataTable } from "./_components/document-table/data-table";
 import { DocumentCard } from "./_components/document-card";
+import { DocumentSearch } from "./_components/document-search";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -48,6 +49,10 @@ export default async function Home() {
               <DocumentCard key={document.id} document={document} />
             ))}
           </div>
+        </div>
+
+        <div className="mb-8">
+          <DocumentSearch />
         </div>
 
         <Suspense>
