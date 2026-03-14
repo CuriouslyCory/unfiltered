@@ -6,6 +6,7 @@ import { api } from "~/trpc/server";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { toTitleCase } from "~/lib/utils";
 import { DocumentType } from "~/generated/prisma/client";
+import { Badge } from "~/app/_components/ui/badge";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -104,7 +105,12 @@ export default async function DocumentEditorPage({
           ← Back to Documents
         </Link>
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{document.title}</h1>
+          <div className="flex items-center gap-3">
+            <h1 className="text-3xl font-bold">{document.title}</h1>
+            <Badge variant={document.published ? "default" : "secondary"}>
+              {document.published ? "Published" : "Draft"}
+            </Badge>
+          </div>
         </div>
       </div>
       <AdjacentDocs adjacentDocs={adjacentDocs} queryString={queryString} />
