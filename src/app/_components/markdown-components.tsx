@@ -21,6 +21,6 @@ export const markdownComponents: Components = {
   p: (props) => <p className="my-4" {...props} />,
   a: (props) => <a className="text-blue-500 hover:underline" {...props} />,
   hr: (props) => (
-    <hr className="my-4 border-gray-600 dark:border-gray-400" {...props} />
+    <hr className="my-4 border-border" {...props} />
   ),
 };

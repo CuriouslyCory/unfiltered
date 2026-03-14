@@ -7,7 +7,7 @@ export function RiskScore({ score, className = "" }: RiskScoreProps) {
   if (score === null || typeof score === "undefined") {
     return (
       <div
-        className={`${className} flex h-6 w-6 items-center justify-center rounded-full bg-gray-200 text-gray-500`}
+        className={`${className} flex h-6 w-6 items-center justify-center rounded-full bg-muted text-muted-foreground`}
       >
         -
       </div>

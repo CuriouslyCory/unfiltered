@@ -41,7 +41,7 @@ export function DocumentCard({ document, className }: DocumentCardProps) {
           )}
         </CardContent>
         <CardFooter className="flex items-end justify-end">
-          <Button variant="ghost" className="text-gray-500">
+          <Button variant="ghost" className="text-muted-foreground">
             Read More
           </Button>
         </CardFooter>

@@ -73,7 +73,7 @@ export default async function Page({ params, searchParams }: Props) {
         <h1 className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>
         {honestTitle && (
           <div className="flex items-baseline gap-x-2">
-            <h4 className="text-sm text-gray-500">Honest Title:</h4>
+            <h4 className="text-sm text-muted-foreground">Honest Title:</h4>
             <h2 className="text-xl font-bold">{honestTitle.content}</h2>
           </div>
         )}
@@ -94,11 +94,11 @@ export default async function Page({ params, searchParams }: Props) {
         {adjacentDocs.previous ? (
           <Link
             href={`/eo-summary/${adjacentDocs.previous.slug}`}
-            className="group flex items-center gap-x-2 text-sm text-gray-500 hover:text-gray-700"
+            className="group flex items-center gap-x-2 text-sm text-muted-foreground hover:text-foreground"
           >
             <ChevronLeftIcon className="h-4 w-4" />
             <span>
-              <span className="block text-xs text-gray-400 group-hover:text-gray-600">
+              <span className="block text-xs text-muted-foreground group-hover:text-foreground">
                 Previous
               </span>
               {toTitleCase(adjacentDocs.previous.title)}
@@ -110,10 +110,10 @@ export default async function Page({ params, searchParams }: Props) {
         {adjacentDocs.next ? (
           <Link
             href={`/eo-summary/${adjacentDocs.next.slug}`}
-            className="group flex items-center gap-x-2 text-sm text-gray-500 hover:text-gray-700"
+            className="group flex items-center gap-x-2 text-sm text-muted-foreground hover:text-foreground"
           >
             <span className="text-right">
-              <span className="block text-xs text-gray-400 group-hover:text-gray-600">
+              <span className="block text-xs text-muted-foreground group-hover:text-foreground">
                 Next
               </span>
               {toTitleCase(adjacentDocs.next.title)}
@@ -126,7 +126,7 @@ export default async function Page({ params, searchParams }: Props) {
       </div>
       {session && session.user.isAdmin && (
         <Link href={`/admin/documents/${document.id}`}>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted-foreground">
             Document Id: {document.id}
           </span>
         </Link>

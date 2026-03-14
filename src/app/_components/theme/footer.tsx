@@ -8,7 +8,7 @@ export default function Footer() {
         <span className="">
           Nothing on Slak.me is intended to constitute legal advice.
         </span>
-        <nav className="ml-auto flex items-center gap-4 text-gray-600 dark:text-gray-400">
+        <nav className="ml-auto flex items-center gap-4 text-muted-foreground">
           <Link href="/">Home</Link>
           <Link href="/about">About</Link>
           <Link href="/contact">Contact</Link>
