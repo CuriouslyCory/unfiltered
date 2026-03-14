@@ -9,6 +9,8 @@ import UpdatesSection from "./_components/updates-section";
 import { auth } from "~/server/auth";
 import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { RiskScore } from "~/components/risk-score";
+import { DocumentTypeBadge } from "~/components/document-type-badge";
 import { DocumentBreadcrumbs } from "./_components/breadcrumbs";
 import { RelatedDocuments } from "./_components/related-documents";
 import { SiteContextBanner } from "./_components/site-context-banner";
@@ -100,19 +102,25 @@ export default async function Page({ params, searchParams }: Props) {
         type={document.type}
         riskScore={document.riskScore ?? 0}
       />
-      <div className="mt-8 flex items-center justify-between border-t pt-8">
+      <nav className="mt-8 grid grid-cols-1 gap-4 border-t pt-8 md:grid-cols-2">
         {adjacentDocs.previous ? (
           <Link
             href={`/eo-summary/${adjacentDocs.previous.slug}`}
-            className="group flex items-center gap-x-2 text-sm text-muted-foreground hover:text-foreground"
+            className="group flex items-center gap-x-3 rounded-xl border bg-card p-4 shadow transition-colors hover:bg-accent"
           >
-            <ChevronLeftIcon className="h-4 w-4" />
-            <span>
-              <span className="block text-xs text-muted-foreground group-hover:text-foreground">
+            <ChevronLeftIcon className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">
                 Previous
               </span>
-              {toTitleCase(adjacentDocs.previous.title)}
-            </span>
+              <span className="text-sm font-semibold leading-tight">
+                {toTitleCase(adjacentDocs.previous.title)}
+              </span>
+              <div className="flex items-center gap-2 pt-1">
+                <RiskScore score={adjacentDocs.previous.riskScore} />
+                <DocumentTypeBadge type={adjacentDocs.previous.type} className="w-auto" />
+              </div>
+            </div>
           </Link>
         ) : (
           <div />
@@ -120,20 +128,26 @@ export default async function Page({ params, searchParams }: Props) {
         {adjacentDocs.next ? (
           <Link
             href={`/eo-summary/${adjacentDocs.next.slug}`}
-            className="group flex items-center gap-x-2 text-sm text-muted-foreground hover:text-foreground"
+            className="group flex items-center gap-x-3 rounded-xl border bg-card p-4 shadow transition-colors hover:bg-accent md:flex-row-reverse md:text-right"
           >
-            <span className="text-right">
-              <span className="block text-xs text-muted-foreground group-hover:text-foreground">
+            <ChevronRightIcon className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1 md:items-end">
+              <span className="text-xs font-medium text-muted-foreground">
                 Next
               </span>
-              {toTitleCase(adjacentDocs.next.title)}
-            </span>
-            <ChevronRightIcon className="h-4 w-4" />
+              <span className="text-sm font-semibold leading-tight">
+                {toTitleCase(adjacentDocs.next.title)}
+              </span>
+              <div className="flex items-center gap-2 pt-1">
+                <RiskScore score={adjacentDocs.next.riskScore} />
+                <DocumentTypeBadge type={adjacentDocs.next.type} className="w-auto" />
+              </div>
+            </div>
           </Link>
         ) : (
           <div />
         )}
-      </div>
+      </nav>
       {session && session.user.isAdmin && (
         <Link href={`/admin/documents/${document.id}`}>
           <span className="text-sm text-muted-foreground">

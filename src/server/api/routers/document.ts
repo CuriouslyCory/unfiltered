@@ -40,6 +40,8 @@ export const documentRouter = createTRPCRouter({
             id: true,
             slug: true,
             title: true,
+            riskScore: true,
+            type: true,
           },
         }),
         // Get the next document (older by date)
@@ -60,6 +62,8 @@ export const documentRouter = createTRPCRouter({
             id: true,
             slug: true,
             title: true,
+            riskScore: true,
+            type: true,
           },
         }),
       ]);
