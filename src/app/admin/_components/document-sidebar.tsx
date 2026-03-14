@@ -21,6 +21,7 @@ import {
   artifactOrder,
   artifactSectionId,
   calculateDocumentHealth,
+  deprecatedArtifacts,
   getArtifactStyle,
   type HealthScoreResult,
 } from "~/lib/document-utils";
@@ -186,10 +187,20 @@ export function DocumentSidebar({ document: doc }: DocumentSidebarProps) {
   const health = calculateDocumentHealth(doc);
   const presentTitles = new Set(doc.documentArtifact.map((a) => a.title));
 
+  // Build nav items: ordered artifacts (skip deprecated unless present) + extra unknown artifacts
+  const orderedNavItems = artifactOrder.filter(
+    (title) => !deprecatedArtifacts.has(title) || presentTitles.has(title),
+  );
+  const artifactOrderSet = new Set(artifactOrder);
+  const extraNavItems = doc.documentArtifact
+    .filter((a) => !artifactOrderSet.has(a.title))
+    .map((a) => a.title);
+  const navItems = [...orderedNavItems, ...extraNavItems];
+
   useEffect(() => {
     const sectionIds = [
       "document-details",
-      ...artifactOrder
+      ...navItems
         .filter((title) => presentTitles.has(title))
         .map((title) => artifactSectionId(title)),
     ];
@@ -275,12 +286,12 @@ export function DocumentSidebar({ document: doc }: DocumentSidebarProps) {
               <FileText className="h-4 w-4 text-muted-foreground" />
               <span>Document Details</span>
             </button>
-            {artifactOrder.map((title) => {
+            {navItems.map((title) => {
               const style = getArtifactStyle(title);
               const ArtifactIcon = style.icon;
               const isPresent = presentTitles.has(title);
               const route = artifactRouteMap[title];
-              const isDeprecated = title === "Areas of Concern";
+              const isDeprecated = deprecatedArtifacts.has(title);
               const isGenerating = generating.has(title);
 
               return (

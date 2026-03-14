@@ -53,6 +53,8 @@ export const artifactOrder = [
   // "Original Document",
 ];
 
+export const deprecatedArtifacts = new Set(["Areas of Concern", "Final Summary"]);
+
 export const RISK_RANGES: Record<string, [number, number]> = {
   low: [0, 2],
   moderate: [3, 4],
@@ -126,10 +128,12 @@ export function calculateDocumentHealth(
     }
   }
 
-  // Artifact coverage: 45 pts (5 per standard artifact)
-  const artifacts: CategoryBreakdown = { filled: [], missing: [], score: 0, max: 45 };
+  // Artifact coverage: 5 pts per standard artifact (excluding deprecated)
+  const artifacts: CategoryBreakdown = { filled: [], missing: [], score: 0, max: 0 };
   const presentTitles = new Set(document.documentArtifact.map((a) => a.title));
   for (const title of artifactOrder) {
+    if (deprecatedArtifacts.has(title)) continue; // Skip deprecated artifacts
+    artifacts.max += 5;
     if (presentTitles.has(title)) {
       artifacts.filled.push(title);
       artifacts.score += 5;
