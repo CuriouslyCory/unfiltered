@@ -18,7 +18,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "~/components/ui/select";
-import { artifactOrder, artifactSectionId } from "~/lib/document-utils";
+import {
+  artifactOrder,
+  artifactSectionId,
+  getArtifactStyle,
+} from "~/lib/document-utils";
 
 interface DocumentEditorProps {
   document: Document & { documentArtifact: DocumentArtifact[] };
@@ -394,11 +398,14 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
               const bSortKey = bIndex === -1 ? artifactOrder.length : bIndex;
               return aSortKey - bSortKey;
             })
-            .map((artifact) => (
+            .map((artifact) => {
+              const style = getArtifactStyle(artifact.title);
+              const ArtifactIcon = style.icon;
+              return (
               <div
                 key={artifact.id}
                 id={artifactSectionId(artifact.title)}
-                className="scroll-mt-4 rounded-lg border border-gray-700 p-4"
+                className={`scroll-mt-4 rounded-lg border-l-4 ${style.borderClass} bg-white/5 p-4`}
               >
                 <div className="mb-2 flex items-center justify-between">
                   {editingArtifactId === artifact.id ? (
@@ -414,7 +421,10 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
                       className="rounded-md border-gray-700 bg-white/5 p-1"
                     />
                   ) : (
-                    <h3 className="font-medium">{artifact.title}</h3>
+                    <h3 className="flex items-center gap-2 font-medium">
+                      <ArtifactIcon className="h-4 w-4" />
+                      {artifact.title}
+                    </h3>
                   )}
                   <div className="flex gap-2">
                     {editingArtifactId === artifact.id ? (
@@ -486,7 +496,8 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
                   </pre>
                 )}
               </div>
-            ))}
+              );
+            })}
         </div>
       </section>
     </div>
