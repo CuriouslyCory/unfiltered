@@ -18,7 +18,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "Files to modify: src/app/_components/theme/header.tsx, src/app/layout.tsx"
     },
     {
@@ -37,7 +37,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "Files to create: src/app/eo-summary/[slug]/_components/breadcrumbs.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
     },
     {
@@ -51,7 +51,7 @@
         "Typecheck passes"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "File to modify: src/lib/document-utils.ts. Data-only, no UI changes. Next story applies it to the component."
     },
     {
@@ -67,7 +67,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "Depends on US-003. File to modify: src/app/eo-summary/[slug]/_components/artifact-section.tsx. Import getArtifactStyle from document-utils."
     },
     {
@@ -84,7 +84,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "File to modify: src/app/eo-summary/[slug]/_components/artifact-section.tsx"
     },
     {
@@ -104,7 +104,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "Files to create: src/app/eo-summary/[slug]/_components/artifact-section-list.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx, src/app/eo-summary/[slug]/_components/artifact-section.tsx. This lifts open/close state from ArtifactSection to the parent wrapper."
     },
     {
@@ -122,7 +122,7 @@
         "Verify in browser using dev-browser skill — check both light and dark themes"
       ],
       "priority": 7,
-      "passes": false,
+      "passes": true,
       "notes": "Search all files in src/app/_components/ and src/app/eo-summary/ for bg-gray, text-gray, border-gray, dark:bg-gray, dark:text-gray, dark:border-gray patterns."
     },
     {
@@ -138,7 +138,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 8,
-      "passes": false,
+      "passes": true,
       "notes": "Files to modify: src/app/eo-summary/[slug]/_components/artifact-section.tsx (ArtifactActions component), src/app/_components/risk-score.tsx"
     },
     {
@@ -160,7 +160,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 9,
-      "passes": false,
+      "passes": true,
       "notes": "Files to create: src/app/_components/document-search.tsx. Files to modify: src/app/page.tsx. Reuses existing document.search tRPC procedure from src/server/api/routers/document.ts which is currently unused in frontend."
     },
     {
@@ -181,7 +181,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": "Depends on US-006 (ArtifactSectionList) for controlling section open/close. Files to create: src/app/eo-summary/[slug]/_components/table-of-contents.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
     },
     {
@@ -202,7 +202,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 11,
-      "passes": false,
+      "passes": true,
       "notes": "Depends on US-003 (artifactStyles) and US-006 (ArtifactSectionList). Files to create: src/app/eo-summary/[slug]/_components/mobile-toc-sheet.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
     },
     {
@@ -222,7 +222,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 12,
-      "passes": false,
+      "passes": true,
       "notes": "Depends on US-009 (search component). Files to create: src/app/_components/hero-section.tsx, src/app/_components/stat-card.tsx. Files to modify: src/app/page.tsx"
     },
     {
@@ -242,7 +242,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 13,
-      "passes": false,
+      "passes": true,
       "notes": "File to modify: src/app/_components/document-table/data-table.tsx. Follow existing URL state sync pattern already in this file."
     },
     {
@@ -258,7 +258,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 14,
-      "passes": false,
+      "passes": true,
       "notes": "Files to modify: src/app/page.tsx, src/app/_components/document-card.tsx"
     },
     {
@@ -274,7 +274,7 @@
         "Typecheck passes"
       ],
       "priority": 15,
-      "passes": false,
+      "passes": true,
       "notes": "File to modify: src/server/api/routers/document.ts. Backend only, no UI changes. The reason field enables the frontend to show 'More Executive Orders' vs 'Similar Risk Level'."
     },
     {
@@ -293,7 +293,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 16,
-      "passes": false,
+      "passes": true,
       "notes": "Depends on US-015. Files to create: src/app/eo-summary/[slug]/_components/related-documents.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
     },
     {
@@ -313,7 +313,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 17,
-      "passes": false,
+      "passes": true,
       "notes": "Files to create: src/app/eo-summary/[slug]/_components/site-context-banner.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
     },
     {
@@ -333,7 +333,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 18,
-      "passes": false,
+      "passes": true,
       "notes": "Files to modify: src/app/_components/risk-score.tsx, src/app/eo-summary/[slug]/_components/details-pane.tsx"
     },
     {
@@ -350,7 +350,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 19,
-      "passes": false,
+      "passes": true,
       "notes": "File to modify: src/app/eo-summary/[slug]/page.tsx. The getAdjacentDocuments tRPC call already returns the needed data."
     },
     {
@@ -366,7 +366,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 20,
-      "passes": false,
+      "passes": true,
       "notes": "File to modify: src/app/eo-summary/[slug]/_components/summary-section.tsx. May need additional props from parent page for section count and document metadata."
     },
     {
@@ -387,7 +387,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 21,
-      "passes": false,
+      "passes": true,
       "notes": "Files to create: src/app/eo-summary/[slug]/_components/sticky-document-header.tsx. Files to modify: src/app/eo-summary/[slug]/page.tsx"
     },
     {
@@ -405,7 +405,7 @@
         "Verify in browser using dev-browser skill — check both light and dark themes"
       ],
       "priority": 22,
-      "passes": false,
+      "passes": true,
       "notes": "Files to modify: src/app/layout.tsx, src/styles/globals.css, src/app/eo-summary/[slug]/_components/artifact-section.tsx"
     },
     {
@@ -421,7 +421,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 23,
-      "passes": false,
+      "passes": true,
       "notes": "Depends on US-018 (risk score full variant). File to modify: src/app/eo-summary/[slug]/_components/details-pane.tsx"
     },
     {
@@ -436,7 +436,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 24,
-      "passes": false,
+      "passes": true,
       "notes": "File to modify: src/app/_components/document-table/data-table.tsx"
     },
     {
@@ -452,7 +452,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 25,
-      "passes": false,
+      "passes": true,
       "notes": "File to modify: src/app/_components/theme/footer.tsx"
     }
   ]
