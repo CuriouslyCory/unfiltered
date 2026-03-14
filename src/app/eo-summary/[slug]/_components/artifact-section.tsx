@@ -172,6 +172,26 @@ interface ArtifactSectionProps {
   documentTitle: string;
 }
 
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/#{1,6}\s+/g, "") // headings
+    .replace(/\*\*(.+?)\*\*/g, "$1") // bold
+    .replace(/\*(.+?)\*/g, "$1") // italic
+    .replace(/__(.+?)__/g, "$1") // bold alt
+    .replace(/_(.+?)_/g, "$1") // italic alt
+    .replace(/~~(.+?)~~/g, "$1") // strikethrough
+    .replace(/`(.+?)`/g, "$1") // inline code
+    .replace(/\[(.+?)\]\(.+?\)/g, "$1") // links
+    .replace(/!\[.*?\]\(.+?\)/g, "") // images
+    .replace(/^\s*[-*+]\s+/gm, "") // list items
+    .replace(/^\s*\d+\.\s+/gm, "") // ordered list items
+    .replace(/^\s*>\s+/gm, "") // blockquotes
+    .replace(/\n{2,}/g, " ") // multiple newlines
+    .replace(/\n/g, " ") // single newlines
+    .replace(/\s{2,}/g, " ") // multiple spaces
+    .trim();
+}
+
 export function ArtifactSection({
   artifact,
   isOpen = false,
@@ -180,6 +200,11 @@ export function ArtifactSection({
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(isOpen);
   const artifactStyle = getArtifactStyle(artifact.title);
   const ArtifactIcon = artifactStyle.icon;
+
+  const previewText = useMemo(() => {
+    const plain = stripMarkdown(artifact.content);
+    return plain.length > 120 ? plain.slice(0, 120) + "…" : plain;
+  }, [artifact.content]);
 
   const handleCopyLink = () => {
     const url = new URL(window.location.href);
@@ -201,12 +226,17 @@ export function ArtifactSection({
       id={artifact.title.toLowerCase().replace(/\s+/g, "-")}
     >
       <CollapsibleTrigger className="w-full">
-        <div className="mb-4 flex items-center justify-start gap-x-2">
+        <div className="mb-4 flex flex-col items-start gap-y-1">
           <div className="flex items-center justify-start gap-x-2">
             <ChevronsUpDown className="h-4 w-4" />
             <ArtifactIcon className="h-4 w-4" />
             <h2 className="text-start text-2xl font-bold">{artifact.title}</h2>
           </div>
+          {!isCollapsibleOpen && (
+            <p className="truncate text-sm text-muted-foreground pl-12 w-full text-start">
+              {previewText}
+            </p>
+          )}
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="CollapsibleContent">
