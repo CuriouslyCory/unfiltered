@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "~/app/_components/ui/dropdown-menu";
 import { cn } from "~/lib/utils";
+import { getArtifactStyle } from "~/lib/document-utils";
 
 interface ArtifactActionsProps {
   artifact: DocumentArtifact;
@@ -177,6 +178,8 @@ export function ArtifactSection({
   documentTitle,
 }: ArtifactSectionProps) {
   const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(isOpen);
+  const artifactStyle = getArtifactStyle(artifact.title);
+  const ArtifactIcon = artifactStyle.icon;
 
   const handleCopyLink = () => {
     const url = new URL(window.location.href);
@@ -201,13 +204,14 @@ export function ArtifactSection({
         <div className="mb-4 flex items-center justify-start gap-x-2">
           <div className="flex items-center justify-start gap-x-2">
             <ChevronsUpDown className="h-4 w-4" />
+            <ArtifactIcon className="h-4 w-4" />
             <h2 className="text-start text-2xl font-bold">{artifact.title}</h2>
           </div>
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="CollapsibleContent">
         <div className="flex items-start justify-center gap-x-2">
-          <div className="w-full max-w-full overflow-x-auto rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
+          <div className={cn("w-full max-w-full overflow-x-auto rounded-md border border-l-4 bg-muted p-6", artifactStyle.borderClass)}>
             <ArtifactActions
               artifact={artifact}
               onCopyLink={handleCopyLink}
