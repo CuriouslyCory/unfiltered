@@ -34,6 +34,7 @@ import {
 } from "~/app/_components/ui/table";
 
 import { Button } from "~/components/ui/button";
+import { Search } from "lucide-react";
 
 const RISK_RANGES: Record<string, [number, number]> = {
   low: [0, 2],
@@ -314,12 +315,15 @@ export function DataTable<TValue>({
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2 py-4">
-        <Input
-          placeholder="Filter documents..."
-          value={searchValue}
-          onChange={(event) => handleSearchChange(event.target.value)}
-          className="max-w-sm"
-        />
+        <div className="relative max-w-sm">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Filter documents..."
+            value={searchValue}
+            onChange={(event) => handleSearchChange(event.target.value)}
+            className="pl-9"
+          />
+        </div>
         <Select value={typeFilter || "all"} onValueChange={handleTypeFilterChange}>
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="All Types" />
@@ -381,6 +385,7 @@ export function DataTable<TValue>({
                   className={cn(
                     "cursor-pointer hover:bg-muted/50",
                     "transition-colors",
+                    "even:bg-muted/30",
                   )}
                   onClick={() =>
                     onRowClick
