@@ -4,7 +4,7 @@ import { api, HydrateClient } from "~/trpc/server";
 import { columns } from "./_components/document-table/columns";
 import { DataTable } from "./_components/document-table/data-table";
 import { DocumentCard } from "./_components/document-card";
-import { DocumentSearch } from "./_components/document-search";
+import { HeroSection } from "./_components/hero-section";
 
 export const metadata: Metadata = {
   title: "Home",
@@ -22,18 +22,29 @@ export default async function Home() {
     (doc) => (doc?.riskScore ?? 0) >= 5,
   ).length;
 
+  const mostRecentDate = documents.reduce<Date | null>((latest, doc) => {
+    const date = doc.dateSigned ?? doc.createdAt;
+    if (!date) return latest;
+    if (!latest || date > latest) return date;
+    return latest;
+  }, null);
+
+  const lastUpdated = mostRecentDate
+    ? mostRecentDate.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "N/A";
+
   return (
     <HydrateClient>
       <main className="flex flex-col">
-        <div className="mb-6">
-          <p className="rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
-            There&apos;s a firehose of executive orders and bills coming out of
-            the White House. I knew I wouldn&apos;t have time to read them all
-            in detail, so I built this tool to help me understand the
-            implications of them. If I had this problem, I figured others might
-            too.
-          </p>
-        </div>
+        <HeroSection
+          totalDocuments={documents.length}
+          highRiskCount={highRiskCount}
+          lastUpdated={lastUpdated}
+        />
 
         <div className="mb-12">
           <h2 className="mb-4 text-2xl font-bold">Highest Risk Score</h2>
@@ -49,10 +60,6 @@ export default async function Home() {
               <DocumentCard key={document.id} document={document} />
             ))}
           </div>
-        </div>
-
-        <div className="mb-8">
-          <DocumentSearch />
         </div>
 
         <Suspense>
