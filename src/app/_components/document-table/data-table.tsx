@@ -84,6 +84,7 @@ interface DataTableProps<TData, TValue> {
   onRowClick?: (row: Document) => void;
   validSortColumns?: Set<string>;
   defaultSort?: SortingState;
+  showPublishedFilter?: boolean;
 }
 
 export function DataTable<TValue>({
@@ -93,6 +94,7 @@ export function DataTable<TValue>({
   onRowClick,
   validSortColumns = DEFAULT_VALID_SORT_COLUMNS,
   defaultSort = DEFAULT_SORT,
+  showPublishedFilter = false,
 }: DataTableProps<Document, TValue>) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -109,6 +111,8 @@ export function DataTable<TValue>({
       if (type) filters.push({ id: "type", value: type });
       const risk = searchParams.get("risk");
       if (risk) filters.push({ id: "riskScore", value: risk });
+      const published = searchParams.get("published");
+      if (published) filters.push({ id: "published", value: published });
       return filters;
   });
   const [searchValue, setSearchValue] = useState(
@@ -119,6 +123,9 @@ export function DataTable<TValue>({
   );
   const [riskFilter, setRiskFilter] = useState(
       () => searchParams.get("risk") ?? "",
+  );
+  const [publishedFilter, setPublishedFilter] = useState(
+      () => searchParams.get("published") ?? "",
   );
   const [pageIndex, setPageIndex] = useState(() =>
       getPageIndexFromParams(searchParams),
@@ -139,10 +146,14 @@ export function DataTable<TValue>({
       const urlRisk = searchParams.get("risk") ?? "";
       setRiskFilter(urlRisk);
 
+      const urlPublished = searchParams.get("published") ?? "";
+      setPublishedFilter(urlPublished);
+
       const filters: ColumnFiltersState = [];
       if (urlSearch) filters.push({ id: "title", value: urlSearch });
       if (urlType) filters.push({ id: "type", value: urlType });
       if (urlRisk) filters.push({ id: "riskScore", value: urlRisk });
+      if (urlPublished) filters.push({ id: "published", value: urlPublished });
       setColumnFilters(filters);
 
       const urlPageIndex = getPageIndexFromParams(searchParams);
@@ -256,6 +267,28 @@ export function DataTable<TValue>({
       [searchParams, pathname, router],
   );
 
+  const handlePublishedFilterChange = useCallback(
+      (value: string) => {
+          const filterValue = value === "all" ? "" : value;
+          setPublishedFilter(filterValue);
+          setPageIndex(0);
+          setColumnFilters((prev) => {
+              const other = prev.filter((f) => f.id !== "published");
+              return filterValue ? [...other, { id: "published", value: filterValue }] : other;
+          });
+
+          const params = new URLSearchParams(searchParams.toString());
+          if (filterValue) {
+              params.set("published", filterValue);
+          } else {
+              params.delete("published");
+          }
+          params.delete("page");
+          router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      },
+      [searchParams, pathname, router],
+  );
+
   const handlePageChange = useCallback(
       (newPageIndex: number) => {
           setPageIndex(newPageIndex); // Optimistic update
@@ -318,7 +351,7 @@ export function DataTable<TValue>({
           />
         </div>
         <Select value={typeFilter || "all"} onValueChange={handleTypeFilterChange}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-45">
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
           <SelectContent>
@@ -331,7 +364,7 @@ export function DataTable<TValue>({
           </SelectContent>
         </Select>
         <Select value={riskFilter || "all"} onValueChange={handleRiskFilterChange}>
-          <SelectTrigger className="w-[180px]">
+          <SelectTrigger className="w-45">
             <SelectValue placeholder="All Risk Levels" />
           </SelectTrigger>
           <SelectContent>
@@ -343,6 +376,18 @@ export function DataTable<TValue>({
             <SelectItem value="severe">Severe (9-10)</SelectItem>
           </SelectContent>
         </Select>
+        {showPublishedFilter && (
+          <Select value={publishedFilter || "all"} onValueChange={handlePublishedFilterChange}>
+            <SelectTrigger className="w-45">
+              <SelectValue placeholder="All Statuses" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Statuses</SelectItem>
+              <SelectItem value="true">Published</SelectItem>
+              <SelectItem value="false">Draft</SelectItem>
+            </SelectContent>
+          </Select>
+        )}
       </div>
       <div className="rounded-md border">
         <Table>

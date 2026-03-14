@@ -18,7 +18,7 @@ type AdjacentDocs = Awaited<
   ReturnType<typeof api.document.getAdminAdjacentDocuments>
 >;
 
-const validSortColumns = new Set(["id", "title", "createdAt", "updatedAt"]);
+const validSortColumns = new Set(["id", "title", "createdAt", "updatedAt", "riskScore"]);
 const validRiskLevels = new Set([
   "low",
   "moderate",
@@ -37,7 +37,7 @@ function buildQueryString(
   searchParams: Record<string, string | string[] | undefined>,
 ): string {
   const params = new URLSearchParams();
-  for (const key of ["sort", "order", "search", "type", "risk"]) {
+  for (const key of ["sort", "order", "search", "type", "risk", "published"]) {
     const val = getStringParam(searchParams[key]);
     if (val) params.set(key, val);
   }
@@ -74,12 +74,13 @@ export default async function DocumentEditorPage({
   const searchParam = getStringParam(resolvedSearchParams.search);
   const typeParam = getStringParam(resolvedSearchParams.type);
   const riskParam = getStringParam(resolvedSearchParams.risk);
+  const publishedParam = getStringParam(resolvedSearchParams.published);
 
   const adjacentDocs = await api.document.getAdminAdjacentDocuments({
     currentId: documentId,
     sort:
       sortParam && validSortColumns.has(sortParam)
-        ? (sortParam as "id" | "title" | "createdAt" | "updatedAt")
+        ? (sortParam as "id" | "title" | "createdAt" | "updatedAt" | "riskScore")
         : undefined,
     order:
       orderParam === "asc" || orderParam === "desc" ? orderParam : undefined,
@@ -91,6 +92,10 @@ export default async function DocumentEditorPage({
     risk:
       riskParam && validRiskLevels.has(riskParam)
         ? (riskParam as "low" | "moderate" | "elevated" | "high" | "severe")
+        : undefined,
+    published:
+      publishedParam === "true" || publishedParam === "false"
+        ? publishedParam === "true"
         : undefined,
   });
 

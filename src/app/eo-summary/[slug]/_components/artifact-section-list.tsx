@@ -53,18 +53,16 @@ export function ArtifactSectionList({
 
   const handleToggle = useCallback(
     (title: string, open: boolean) => {
-      setOpenSections((prev) => {
-        const next = new Set(prev);
-        if (open) {
-          next.add(title);
-        } else {
-          next.delete(title);
-        }
-        updateUrl(next);
-        return next;
-      });
+      const next = new Set(openSections);
+      if (open) {
+        next.add(title);
+      } else {
+        next.delete(title);
+      }
+      setOpenSections(next);
+      updateUrl(next);
     },
-    [updateUrl],
+    [openSections, updateUrl],
   );
 
   const handleExpandAll = () => {

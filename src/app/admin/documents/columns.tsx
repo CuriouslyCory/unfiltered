@@ -5,6 +5,8 @@ import { type Document } from "~/generated/prisma/client";
 import { toTitleCase } from "~/lib/utils";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "~/components/ui/button";
+import { Badge } from "~/app/_components/ui/badge";
+import { RiskScore } from "~/app/_components/risk-score";
 
 export const adminColumns: ColumnDef<Document>[] = [
   {
@@ -23,6 +25,44 @@ export const adminColumns: ColumnDef<Document>[] = [
     },
     cell: ({ row }) => (
       <div className="text-sm tabular-nums">{row.getValue<number>("id")}</div>
+    ),
+  },
+  {
+    accessorKey: "published",
+    header: "Status",
+    cell: ({ row }) => {
+      const published = row.getValue<boolean>("published");
+      return (
+        <Badge variant={published ? "default" : "secondary"}>
+          {published ? "Published" : "Draft"}
+        </Badge>
+      );
+    },
+    filterFn: (row, columnId, filterValue: string) => {
+      if (filterValue === "true") return row.getValue<boolean>(columnId) === true;
+      if (filterValue === "false") return row.getValue<boolean>(columnId) === false;
+      return true;
+    },
+  },
+  {
+    accessorKey: "riskScore",
+    filterFn: "riskRange" as never,
+    header: ({ column }) => {
+      return (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          className="w-full justify-start px-2"
+        >
+          Risk
+          <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      );
+    },
+    cell: ({ row }) => (
+      <div className="flex justify-center">
+        <RiskScore score={row.getValue("riskScore")} />
+      </div>
     ),
   },
   {
