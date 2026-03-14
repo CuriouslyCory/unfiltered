@@ -168,7 +168,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/app/admin/_components/document-sidebar.tsx. Add artifact route mapping as a const record. Use fetch() for API calls. Import env from ~/env."
     },
     {
@@ -183,7 +183,7 @@
         "Typecheck passes"
       ],
       "priority": 11,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/app/admin/_components/document-editor.tsx. Check document.activeElement.tagName to skip when in input/textarea."
     }
   ]

@@ -227,3 +227,26 @@
   - The `self-start` class is on the inner div (not aside) to work with the sticky positioning
   - Pre-existing lint error on line 86 (`searchParam || undefined` should use `??`) — not from this story
 ---
+
+## 2026-03-13 - US-010
+- What was implemented: Added artifact generation buttons to DocumentSidebar for missing artifacts, with route mapping to workflow API
+- Files changed:
+  - src/app/admin/_components/document-sidebar.tsx (added artifactRouteMap, generateArtifact/generateAllMissing functions, Play/Loader2/Sparkles icons, TooltipProvider for deprecated "Areas of Concern", "Generate All Missing" button)
+- **Learnings for future iterations:**
+  - `artifactRouteMap` maps artifact titles to API routes — "Areas of Concern" has no route and is marked deprecated with a tooltip
+  - Generate buttons use `env.NEXT_PUBLIC_WORKFLOW_API_URL` from `~/env` (client-side env var)
+  - Loading state tracked via `Set<string>` — individual artifacts use their title as key, "Generate All Missing" uses `"__all__"` sentinel
+  - `router.refresh()` from `next/navigation` refreshes server components to pick up newly generated artifacts
+  - Tooltip component is at `~/app/_components/ui/tooltip` — wraps @radix-ui/react-tooltip, needs TooltipProvider wrapper
+  - sonner's `toast.success()` and `toast.error()` used for generation feedback
+---
+
+## 2026-03-13 - US-011
+- What was implemented: Added Ctrl+E / Cmd+E keyboard shortcut to toggle document details edit mode
+- Files changed:
+  - src/app/admin/_components/document-editor.tsx (added useEffect import, keydown listener with activeElement check)
+- **Learnings for future iterations:**
+  - `document` prop shadows `globalThis.document` in DocumentEditor — use `globalThis.document.activeElement` to access the DOM
+  - Keyboard shortcut skips activation when focused on INPUT, TEXTAREA, or SELECT elements, or when editing an artifact (`editingArtifactId !== null`)
+  - `setIsEditing((prev) => !prev)` used as functional updater to avoid stale closure over `isEditing`
+---
