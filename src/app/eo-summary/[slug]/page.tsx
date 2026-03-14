@@ -11,6 +11,7 @@ import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { DocumentBreadcrumbs } from "./_components/breadcrumbs";
 import { RelatedDocuments } from "./_components/related-documents";
+import { SiteContextBanner } from "./_components/site-context-banner";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -70,6 +71,7 @@ export default async function Page({ params, searchParams }: Props) {
   return (
     <article className="flex flex-col gap-y-12 pb-16 pt-6 md:pb-0">
       <DocumentBreadcrumbs type={document.type} title={toTitleCase(document.title)} />
+      <SiteContextBanner />
       <div className="flex flex-col gap-y-2">
         <h1 className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>
         {honestTitle && (
