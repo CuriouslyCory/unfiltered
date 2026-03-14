@@ -11,6 +11,7 @@ import { Analytics } from "@vercel/analytics/react";
 import Header from "~/components/theme/header";
 import Footer from "./_components/theme/footer";
 import { Toaster } from "./_components/ui/sonner";
+import { TooltipProvider } from "./_components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: {
@@ -58,12 +59,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCReactProvider>
-            <div className="mx-6 flex h-screen max-w-screen-xl flex-col justify-between md:mx-12 xl:mx-auto">
-              <Header />
-              <main className="mx-auto w-full">{children}</main>
-              <Footer />
-            </div>
-            <Toaster />
+            <TooltipProvider>
+              <div className="mx-6 flex h-screen max-w-screen-xl flex-col justify-between md:mx-12 xl:mx-auto">
+                <Header />
+                <main className="mx-auto w-full">{children}</main>
+                <Footer />
+              </div>
+              <Toaster />
+            </TooltipProvider>
           </TRPCReactProvider>
         </ThemeProvider>
         <Analytics />

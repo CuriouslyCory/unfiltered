@@ -7,11 +7,13 @@ export function DetailsPane({ document }: { document: Document }) {
   return (
     <div className="w-fit min-w-64 rounded-md border border-border bg-card p-6 text-card-foreground">
       <div className="flex flex-col gap-x-2 gap-y-2">
-        <div className="flex items-center gap-x-2">
-          <span className="text-muted-foreground">
-            Constitutional Risk:{" "}
+        <div>
+          <span className="text-sm text-muted-foreground">
+            Constitutional Risk
           </span>
-          <RiskScore score={document?.riskScore} />
+          <div className="mt-1">
+            <RiskScore score={document?.riskScore} size="full" />
+          </div>
         </div>
         <div>
           <span className="text-muted-foreground">Signed by:</span>{" "}
