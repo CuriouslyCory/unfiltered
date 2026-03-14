@@ -36,10 +36,10 @@ export const metadata: Metadata = {
   },
 };
 
-const cactus = Roboto_Serif({
+const headingFont = Roboto_Serif({
   subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-cactus",
+  weight: ["400", "700"],
+  variable: "--font-heading",
 });
 
 export default function RootLayout({
@@ -48,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${cactus.variable}`}
+      className={`${GeistSans.variable} ${headingFont.variable}`}
       suppressHydrationWarning
     >
       <body>

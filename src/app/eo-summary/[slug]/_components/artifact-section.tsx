@@ -262,7 +262,7 @@ export function ArtifactSection({
               documentTitle={documentTitle}
               className="md:hidden"
             />
-            <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+            <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-relaxed">
               <Markdown
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
