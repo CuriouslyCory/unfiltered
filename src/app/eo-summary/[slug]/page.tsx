@@ -85,7 +85,16 @@ export default async function Page({ params, searchParams }: Props) {
       </div>
       <section className="flex flex-col gap-x-6 gap-y-6 md:flex-row">
         <DetailsPane document={document} />
-        <SummarySection document={document} />
+        <SummarySection
+          document={document}
+          sectionCount={
+            artifactOrder.filter(
+              (title) => getArtifactByTitle(document, title) !== undefined,
+            ).length
+          }
+          documentType={document.type}
+          riskScore={document.riskScore}
+        />
       </section>
       {updates && <UpdatesSection updates={updates} />}
       <ArtifactSectionList
