@@ -2,12 +2,13 @@
 
 import { type ColumnDef } from "@tanstack/react-table";
 import { type Document } from "~/generated/prisma/client";
-import { useRouter } from "next/navigation";
-import { useCallback, useMemo } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback } from "react";
 import { DataTable } from "~/app/_components/document-table/data-table";
 
 const ADMIN_SORT_COLUMNS = new Set(["id", "title", "createdAt", "updatedAt"]);
 const ADMIN_DEFAULT_SORT = [{ id: "id" as const, desc: true }];
+const FORWARDED_PARAMS = ["sort", "order", "search", "type", "risk"];
 
 interface AdminDocumentsTableProps<TValue> {
   columns: ColumnDef<Document, TValue>[];
@@ -19,12 +20,19 @@ export function AdminDocumentsTable<TValue>({
   data,
 }: AdminDocumentsTableProps<TValue>) {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const handleRowClick = useCallback(
     (row: Document) => {
-      router.push(`/admin/documents/${row.id}`);
+      const params = new URLSearchParams();
+      for (const key of FORWARDED_PARAMS) {
+        const val = searchParams.get(key);
+        if (val) params.set(key, val);
+      }
+      const qs = params.toString();
+      router.push(`/admin/documents/${row.id}${qs ? `?${qs}` : ""}`);
     },
-    [router],
+    [router, searchParams],
   );
 
   return (

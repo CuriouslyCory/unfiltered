@@ -1,12 +1,14 @@
 import { z } from "zod";
-import { DocumentType } from "~/generated/prisma/client";
+import { DocumentType, type Prisma } from "~/generated/prisma/client";
 import {
   createTRPCRouter,
   publicProcedure,
   adminProcedure,
 } from "~/server/api/trpc";
-import { artifactOrder } from "~/lib/document-utils";
+import { artifactOrder, RISK_RANGES } from "~/lib/document-utils";
 import { getDocumentFts } from "~/generated/prisma/sql";
+
+const adminSortColumns = ["id", "title", "createdAt", "updatedAt"] as const;
 
 export const documentRouter = createTRPCRouter({
   getAdjacentDocuments: publicProcedure
@@ -253,5 +255,98 @@ export const documentRouter = createTRPCRouter({
       });
 
       return true;
+    }),
+
+  getAdminAdjacentDocuments: adminProcedure
+    .input(
+      z.object({
+        currentId: z.number(),
+        sort: z.enum(adminSortColumns).default("id"),
+        order: z.enum(["asc", "desc"]).default("desc"),
+        search: z.string().optional(),
+        type: z.nativeEnum(DocumentType).optional(),
+        risk: z
+          .enum(["low", "moderate", "elevated", "high", "severe"])
+          .optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Build filter conditions (no published filter - admin sees all)
+      const filters: Prisma.DocumentWhereInput[] = [];
+      if (input.search) {
+        filters.push({
+          title: { contains: input.search, mode: "insensitive" },
+        });
+      }
+      if (input.type) {
+        filters.push({ type: input.type });
+      }
+      if (input.risk) {
+        const range = RISK_RANGES[input.risk];
+        if (range) {
+          if (input.risk === "low") {
+            filters.push({
+              OR: [
+                { riskScore: { gte: range[0], lte: range[1] } },
+                { riskScore: null },
+              ],
+            });
+          } else {
+            filters.push({ riskScore: { gte: range[0], lte: range[1] } });
+          }
+        }
+      }
+
+      const where: Prisma.DocumentWhereInput =
+        filters.length > 0 ? { AND: filters } : {};
+
+      // Fetch all matching documents with sortable fields
+      const allDocs = await ctx.db.document.findMany({
+        where,
+        select: { id: true, title: true, createdAt: true, updatedAt: true },
+      });
+
+      // Sort in JavaScript to match TanStack Table's client-side sorting
+      // (TanStack uses case-insensitive string comparison, which differs from PostgreSQL collation)
+      const sortCol = input.sort;
+      const desc = input.order === "desc";
+      allDocs.sort((a, b) => {
+        const aVal = a[sortCol];
+        const bVal = b[sortCol];
+
+        let cmp: number;
+        if (typeof aVal === "string" && typeof bVal === "string") {
+          cmp = aVal.localeCompare(bVal, undefined, { sensitivity: "base" });
+        } else if (aVal instanceof Date && bVal instanceof Date) {
+          cmp = aVal.getTime() - bVal.getTime();
+        } else {
+          cmp = (aVal as number) - (bVal as number);
+        }
+
+        // Tiebreaker by id for deterministic ordering
+        if (cmp === 0) {
+          cmp = a.id - b.id;
+        }
+
+        return desc ? -cmp : cmp;
+      });
+
+      const currentIndex = allDocs.findIndex(
+        (d) => d.id === input.currentId,
+      );
+
+      const pick = (d: { id: number; title: string }) => ({
+        id: d.id,
+        title: d.title,
+      });
+
+      return {
+        previous:
+          currentIndex > 0 ? pick(allDocs[currentIndex - 1]!) : null,
+        next:
+          currentIndex >= 0 && currentIndex < allDocs.length - 1
+            ? pick(allDocs[currentIndex + 1]!)
+            : null,
+      };
     }),
 });
