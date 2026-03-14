@@ -89,6 +89,8 @@ export default async function Page({ params, searchParams }: Props) {
           .filter((artifact) => artifact !== undefined)}
         initialOpenSections={openSections}
         documentTitle={document.title}
+        riskScore={document.riskScore}
+        documentType={document.type}
       />
       <div className="mt-8 flex items-center justify-between border-t pt-8">
         {adjacentDocs.previous ? (

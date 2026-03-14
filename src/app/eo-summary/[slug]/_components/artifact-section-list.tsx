@@ -3,19 +3,25 @@
 import { useState, useCallback } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { type DocumentArtifact } from "~/generated/prisma/client";
+import { type DocumentType } from "~/generated/prisma/client";
 import { ArtifactSection } from "./artifact-section";
+import { TableOfContents } from "./table-of-contents";
 import { Button } from "~/app/_components/ui/button";
 
 interface ArtifactSectionListProps {
   artifacts: DocumentArtifact[];
   initialOpenSections: string[];
   documentTitle: string;
+  riskScore: number | null;
+  documentType: DocumentType;
 }
 
 export function ArtifactSectionList({
   artifacts,
   initialOpenSections,
   documentTitle,
+  riskScore,
+  documentType,
 }: ArtifactSectionListProps) {
   const router = useRouter();
   const pathname = usePathname();
@@ -72,25 +78,42 @@ export function ArtifactSectionList({
     updateUrl(none);
   };
 
+  const handleOpenSection = useCallback(
+    (title: string) => {
+      if (!openSections.has(title)) {
+        handleToggle(title, true);
+      }
+    },
+    [openSections, handleToggle],
+  );
+
   return (
-    <div className="flex flex-col gap-y-8">
-      <div className="flex gap-x-2">
-        <Button variant="outline" size="sm" onClick={handleExpandAll}>
-          Expand All
-        </Button>
-        <Button variant="outline" size="sm" onClick={handleCollapseAll}>
-          Collapse All
-        </Button>
+    <div className="md:grid md:grid-cols-[200px_1fr] md:gap-6">
+      <TableOfContents
+        artifacts={artifacts}
+        riskScore={riskScore}
+        documentType={documentType}
+        onSectionClick={handleOpenSection}
+      />
+      <div className="flex flex-col gap-y-8">
+        <div className="flex gap-x-2">
+          <Button variant="outline" size="sm" onClick={handleExpandAll}>
+            Expand All
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleCollapseAll}>
+            Collapse All
+          </Button>
+        </div>
+        {artifacts.map((artifact) => (
+          <ArtifactSection
+            key={artifact.id}
+            artifact={artifact}
+            isOpen={openSections.has(artifact.title)}
+            onToggle={(open) => handleToggle(artifact.title, open)}
+            documentTitle={documentTitle}
+          />
+        ))}
       </div>
-      {artifacts.map((artifact) => (
-        <ArtifactSection
-          key={artifact.id}
-          artifact={artifact}
-          isOpen={openSections.has(artifact.title)}
-          onToggle={(open) => handleToggle(artifact.title, open)}
-          documentTitle={documentTitle}
-        />
-      ))}
     </div>
   );
 }
