@@ -17,7 +17,8 @@ export const metadata: Metadata = {
     template: "%s | Slak.me",
     default: "Slak.me Executive Order Analysis",
   },
-  description: "Deep analysis of political orders",
+  description:
+    "Independent analysis of executive orders, legislation, and government actions — tracking constitutional risk and civic impact",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   robots: {
     index: true,
