@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { type Document, type DocumentArtifact } from "~/generated/prisma/client";
 import { ChevronDown, ChevronRight, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "~/app/_components/ui/card";
@@ -114,8 +114,40 @@ function scrollToSection(id: string) {
 
 export function DocumentSidebar({ document: doc }: DocumentSidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
   const health = calculateDocumentHealth(doc);
   const presentTitles = new Set(doc.documentArtifact.map((a) => a.title));
+
+  useEffect(() => {
+    const sectionIds = [
+      "document-details",
+      ...artifactOrder
+        .filter((title) => presentTitles.has(title))
+        .map((title) => artifactSectionId(title)),
+    ];
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setActiveSection(entry.target.id);
+          }
+        }
+      },
+      { rootMargin: "-20% 0px -70% 0px" },
+    );
+
+    for (const id of sectionIds) {
+      const el = document.getElementById(id);
+      if (el) observerRef.current.observe(el);
+    }
+
+    return () => {
+      observerRef.current?.disconnect();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doc.documentArtifact]);
 
   return (
     <div className="space-y-4">
@@ -167,7 +199,11 @@ export function DocumentSidebar({ document: doc }: DocumentSidebarProps) {
           <nav className="space-y-0.5">
             <button
               onClick={() => scrollToSection("document-details")}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+              className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-all duration-150 ${
+                activeSection === "document-details"
+                  ? "border-l-2 border-primary bg-muted/50 pl-1.5"
+                  : "hover:bg-muted"
+              }`}
             >
               <FileText className="h-4 w-4 text-muted-foreground" />
               <span>Document Details</span>
@@ -184,10 +220,12 @@ export function DocumentSidebar({ document: doc }: DocumentSidebarProps) {
                     isPresent &&
                     scrollToSection(artifactSectionId(title))
                   }
-                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm ${
-                    isPresent
-                      ? "hover:bg-muted"
-                      : "cursor-default opacity-50"
+                  className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-all duration-150 ${
+                    !isPresent
+                      ? "cursor-default opacity-50"
+                      : activeSection === artifactSectionId(title)
+                        ? "border-l-2 border-primary bg-muted/50 pl-1.5"
+                        : "hover:bg-muted"
                   }`}
                 >
                   <ArtifactIcon
