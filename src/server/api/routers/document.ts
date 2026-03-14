@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { DocumentType } from "~/generated/prisma/client";
 import {
   createTRPCRouter,
   publicProcedure,
@@ -76,6 +77,62 @@ export const documentRouter = createTRPCRouter({
         getDocumentFts(input.query),
       );
       return documents;
+    }),
+
+  getRelated: publicProcedure
+    .input(
+      z.object({
+        documentId: z.number(),
+        type: z.nativeEnum(DocumentType),
+        riskScore: z.number(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Try to find documents of the same type first
+      const sameType = await ctx.db.document.findMany({
+        where: {
+          id: { not: input.documentId },
+          type: input.type,
+          published: true,
+        },
+        orderBy: { dateSigned: "desc" },
+        take: 4,
+      });
+
+      if (sameType.length > 0) {
+        return { documents: sameType, reason: "type" as const };
+      }
+
+      // Fall back to similar risk score (+/-1)
+      const similarRisk = await ctx.db.document.findMany({
+        where: {
+          id: { not: input.documentId },
+          published: true,
+          riskScore: {
+            gte: input.riskScore - 1,
+            lte: input.riskScore + 1,
+          },
+        },
+        orderBy: { dateSigned: "desc" },
+        take: 4,
+      });
+
+      if (similarRisk.length > 0) {
+        return { documents: similarRisk, reason: "risk" as const };
+      }
+
+      // Final fallback: highest-risk published documents
+      const highestRisk = await ctx.db.document.findMany({
+        where: {
+          id: { not: input.documentId },
+          published: true,
+          riskScore: { not: null },
+        },
+        orderBy: { riskScore: "desc" },
+        take: 4,
+      });
+
+      return { documents: highestRisk, reason: "risk" as const };
     }),
 
   getAll: publicProcedure
