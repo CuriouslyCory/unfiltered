@@ -17,7 +17,7 @@
         "Typecheck passes"
       ],
       "priority": 1,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/lib/document-utils.ts. These are data-only utilities, no UI changes."
     },
     {
@@ -33,7 +33,7 @@
         "Typecheck passes"
       ],
       "priority": 2,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/app/admin/_components/document-editor.tsx. Import artifactSectionId and artifactOrder from ~/lib/document-utils."
     },
     {
@@ -48,7 +48,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 3,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/app/admin/_components/document-editor.tsx. Import getArtifactStyle from ~/lib/document-utils."
     },
     {
@@ -64,7 +64,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 4,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/app/admin/documents/[id]/page.tsx"
     },
     {
@@ -77,7 +77,7 @@
         "Typecheck passes"
       ],
       "priority": 5,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/env.js. Uses @t3-oss/env-nextjs createEnv pattern already in place."
     },
     {
@@ -96,7 +96,7 @@
         "Verify in browser using dev-browser skill"
       ],
       "priority": 6,
-      "passes": false,
+      "passes": true,
       "notes": "File: src/app/admin/_components/document-sidebar.tsx. Props: document: Document & { documentArtifact: DocumentArtifact[] }. SVG ring uses stroke-dasharray/stroke-dashoffset technique."
     },
     {

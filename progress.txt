@@ -129,3 +129,66 @@
   - react-markdown v10 is a drop-in upgrade — `Markdown` default export, `Components` type export, and `remarkPlugins` prop all unchanged
   - react-markdown v10 adds `MarkdownAsync` and `MarkdownHooks` named exports for async/hooks patterns
 ---
+
+## 2026-03-13 - US-001
+- What was implemented: `calculateDocumentHealth()` and `artifactSectionId()` utility functions in `src/lib/document-utils.ts`
+- Files changed:
+  - src/lib/document-utils.ts (added HealthScoreResult type, CategoryBreakdown type, calculateDocumentHealth function, artifactSectionId function)
+- **Learnings for future iterations:**
+  - Document model required fields: title, originalDocumentUrl, dateSigned, signer, type — all are non-nullable in Prisma schema
+  - Optional fields: shortSummary (String?), riskScore (Int?) — use `!= null` check for riskScore since 0 is a valid value
+  - `artifactOrder` already existed in document-utils.ts with the 9 standard artifact types
+  - `getArtifactStyle()` also already existed for border colors and icons per artifact type
+---
+
+## 2026-03-13 - US-002
+- What was implemented: Added section IDs and canonical artifact sort order to document editor
+- Files changed:
+  - src/app/admin/_components/document-editor.tsx (added imports for artifactOrder/artifactSectionId, added id="document-details" to details section, added id and scroll-mt-4 to artifact divs, replaced localeCompare sort with artifactOrder-based sort)
+- **Learnings for future iterations:**
+  - Artifact divs in document-editor.tsx now have stable IDs via `artifactSectionId()` — sidebar components can target these for scroll navigation
+  - Artifacts not in `artifactOrder` sort to the end (using `artifactOrder.length` as sentinel value)
+  - The document-editor has two main sections: "Document Details" (form) and "Document Artifacts" (list) — section IDs target the outer `<section>` elements
+---
+
+## 2026-03-13 - US-003
+- What was implemented: Applied artifact-specific border colors and icons to artifact cards in the document editor
+- Files changed:
+  - src/app/admin/_components/document-editor.tsx (imported getArtifactStyle, replaced uniform border-gray-700 with border-l-4 + dynamic borderClass, added ArtifactIcon next to title)
+- **Learnings for future iterations:**
+  - `getArtifactStyle()` returns `{ borderClass, icon }` — destructure `icon` as a capitalized component name (e.g., `const ArtifactIcon = style.icon`) for JSX usage
+  - Changed `.map()` with implicit return to block body with explicit return to accommodate the `const style = ...` binding
+  - Browser verification requires auth (Discord login) — manual verification needed for UI stories unless session cookies are pre-configured
+---
+
+## 2026-03-13 - US-004
+- What was implemented: Added Published/Draft badge next to document title in admin document detail page header
+- Files changed:
+  - src/app/admin/documents/[id]/page.tsx (imported Badge component, added conditional badge with default variant for Published, secondary variant for Draft)
+- **Learnings for future iterations:**
+  - Badge component is at `~/app/_components/ui/badge` (not `~/components/ui/badge`)
+  - `document.published` is a boolean field from Prisma schema, defaults to false
+  - Pre-existing lint error on line 85 (`searchParam || undefined` should use `??`) — not introduced by this story
+---
+
+## 2026-03-13 - US-005
+- What was implemented: Added NEXT_PUBLIC_WORKFLOW_API_URL client environment variable to src/env.js
+- Files changed:
+  - src/env.js (added NEXT_PUBLIC_WORKFLOW_API_URL to client schema with z.string().url().default('http://localhost:3200'), added to runtimeEnv mapping)
+- **Learnings for future iterations:**
+  - @t3-oss/env-nextjs client vars require both `client` schema entry AND `runtimeEnv` mapping with `process.env.NEXT_PUBLIC_*`
+  - Zod `.default()` in client schema means the env var is optional at runtime — no `.env` entry needed for local dev
+  - env.js is a `.js` file (not `.ts`) — it uses `tseslint.configs.disableTypeChecked` in the ESLint flat config
+---
+
+## 2026-03-13 - US-006
+- What was implemented: Created DocumentSidebar client component with collapsible health score card
+- Files changed:
+  - src/app/admin/_components/document-sidebar.tsx (new file — DocumentSidebar component with SVG progress ring, collapsible breakdown)
+- **Learnings for future iterations:**
+  - Card component is at `~/app/_components/ui/card` (not `~/components/ui/card`)
+  - Collapsible component is at `~/app/_components/ui/collapsible` — wraps @radix-ui/react-collapsible
+  - SVG circular progress ring: use `stroke-dasharray={circumference}` and `stroke-dashoffset={circumference - (pct/100) * circumference}` with `rotate(-90)` to start from top
+  - Health color thresholds: green (80+), yellow (60-79), orange (40-59), red (0-39)
+  - Component is not yet integrated into the page layout — US-009 will add it to the document detail page
+---
