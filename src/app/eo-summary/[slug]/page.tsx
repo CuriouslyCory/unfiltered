@@ -67,7 +67,7 @@ export default async function Page({ params, searchParams }: Props) {
   const honestTitle = getArtifactByTitle(document, "Honest Title");
 
   return (
-    <article className="flex flex-col gap-y-12 pt-6">
+    <article className="flex flex-col gap-y-12 pb-16 pt-6 md:pb-0">
       <DocumentBreadcrumbs type={document.type} title={toTitleCase(document.title)} />
       <div className="flex flex-col gap-y-2">
         <h1 className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>

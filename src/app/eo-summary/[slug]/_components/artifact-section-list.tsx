@@ -7,6 +7,7 @@ import { type DocumentType } from "~/generated/prisma/client";
 import { ArtifactSection } from "./artifact-section";
 import { TableOfContents } from "./table-of-contents";
 import { Button } from "~/app/_components/ui/button";
+import { MobileTocSheet } from "./mobile-toc-sheet";
 
 interface ArtifactSectionListProps {
   artifacts: DocumentArtifact[];
@@ -114,6 +115,10 @@ export function ArtifactSectionList({
           />
         ))}
       </div>
+      <MobileTocSheet
+        artifacts={artifacts}
+        onSectionClick={handleOpenSection}
+      />
     </div>
   );
 }
