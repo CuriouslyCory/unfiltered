@@ -6,7 +6,7 @@
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-serif: var(--font-cactus), ui-serif, Georgia, Cambria,
+  --font-serif: var(--font-heading), ui-serif, Georgia, Cambria,
     "Times New Roman", Times, serif;
 
   --radius-lg: var(--radius);
@@ -53,6 +53,12 @@
   --color-risk-high: hsl(0, 84%, 60%);
   --color-risk-severe: hsl(0, 72%, 51%);
 
+  --color-artifact-info: hsl(217, 91%, 60%);
+  --color-artifact-warning: hsl(25, 95%, 53%);
+  --color-artifact-danger: hsl(0, 84%, 60%);
+  --color-artifact-action: hsl(142, 71%, 45%);
+  --color-artifact-share: hsl(239, 84%, 67%);
+
   --animate-accordion-down: accordion-down 0.2s ease-out;
   --animate-accordion-up: accordion-up 0.2s ease-out;
 
@@ -79,7 +85,7 @@
   :root {
     --background: 36, 24%, 96%;
     --foreground: 23, 6%, 24%;
-    --card: 0 0% 100%;
+    --card: 36 20% 99%;
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
@@ -106,7 +112,7 @@
   .dark {
     --background: 240, 10%, 10%;
     --foreground: 36, 24%, 96%;
-    --card: 240 10% 3.9%;
+    --card: 240 10% 13%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;

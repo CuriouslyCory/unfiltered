@@ -11,13 +11,15 @@ import { Analytics } from "@vercel/analytics/react";
 import Header from "~/components/theme/header";
 import Footer from "./_components/theme/footer";
 import { Toaster } from "./_components/ui/sonner";
+import { TooltipProvider } from "./_components/ui/tooltip";
 
 export const metadata: Metadata = {
   title: {
     template: "%s | Slak.me",
     default: "Slak.me Executive Order Analysis",
   },
-  description: "Deep analysis of political orders",
+  description:
+    "Independent analysis of executive orders, legislation, and government actions — tracking constitutional risk and civic impact",
   icons: [{ rel: "icon", url: "/favicon.ico" }],
   robots: {
     index: true,
@@ -34,10 +36,10 @@ export const metadata: Metadata = {
   },
 };
 
-const cactus = Roboto_Serif({
+const headingFont = Roboto_Serif({
   subsets: ["latin"],
-  weight: ["400"],
-  variable: "--font-cactus",
+  weight: ["400", "700"],
+  variable: "--font-heading",
 });
 
 export default function RootLayout({
@@ -46,7 +48,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${cactus.variable}`}
+      className={`${GeistSans.variable} ${headingFont.variable}`}
       suppressHydrationWarning
     >
       <body>
@@ -57,12 +59,14 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <TRPCReactProvider>
-            <div className="mx-6 flex h-screen max-w-screen-xl flex-col justify-between md:mx-12 xl:mx-auto">
-              <Header />
-              <main className="mx-auto w-full">{children}</main>
-              <Footer />
-            </div>
-            <Toaster />
+            <TooltipProvider>
+              <div className="mx-6 flex h-screen max-w-screen-xl flex-col justify-between md:mx-12 xl:mx-auto">
+                <Header />
+                <main className="mx-auto w-full">{children}</main>
+                <Footer />
+              </div>
+              <Toaster />
+            </TooltipProvider>
           </TRPCReactProvider>
         </ThemeProvider>
         <Analytics />

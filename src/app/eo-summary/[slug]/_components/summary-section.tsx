@@ -1,14 +1,43 @@
-import { type Document } from "~/generated/prisma/client";
+import { type Document, type DocumentType } from "~/generated/prisma/client";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "~/components/ui/card";
+import { RiskScore } from "~/components/risk-score";
+import { DocumentTypeBadge } from "~/components/document-type-badge";
 
-export default function SummarySection({ document }: { document: Document }) {
+type SummarySectionProps = {
+  document: Document;
+  sectionCount: number;
+  documentType: DocumentType;
+  riskScore: number | null;
+};
+
+export default function SummarySection({
+  document,
+  sectionCount,
+  documentType,
+  riskScore,
+}: SummarySectionProps) {
   return (
     <section className="flex w-full flex-col">
-      <div className="h-full rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
-        <div className="mb-4 flex items-center gap-x-2">
-          <h2 className="text-lg font-bold">Summary</h2>
-        </div>
-        <p>{document?.shortSummary}</p>
-      </div>
+      <Card className="h-full">
+        <CardHeader>
+          <CardTitle>Summary</CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-col gap-4">
+          <p className="text-lg">{document?.shortSummary}</p>
+          <div className="flex flex-wrap items-center gap-3 border-t pt-4">
+            <RiskScore score={riskScore} />
+            <DocumentTypeBadge type={documentType} className="w-auto" />
+            <span className="text-sm text-muted-foreground">
+              {sectionCount} analysis {sectionCount === 1 ? "section" : "sections"}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
     </section>
   );
 }

@@ -35,6 +35,7 @@ import {
   DropdownMenuTrigger,
 } from "~/app/_components/ui/dropdown-menu";
 import { cn } from "~/lib/utils";
+import { getArtifactStyle } from "~/lib/document-utils";
 
 interface ArtifactActionsProps {
   artifact: DocumentArtifact;
@@ -68,28 +69,30 @@ function ArtifactActions({
   // Common actions that appear for all artifacts
   const commonActions = (
     <>
-      <div
-        className="cursor-pointer hover:opacity-70"
+      <button
+        type="button"
+        className="cursor-pointer hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
         onClick={(e) => {
           e.stopPropagation();
           onCopyLink();
         }}
-        title="Copy link to section"
+        aria-label="Copy link to section"
       >
         <LinkIcon className="h-4 w-4" />
-      </div>
-      <div
-        className="cursor-pointer hover:opacity-70"
+      </button>
+      <button
+        type="button"
+        className="cursor-pointer hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
         onClick={(e) => {
           e.stopPropagation();
           onCopyContent();
         }}
-        title="Copy content"
+        aria-label="Copy content"
       >
         <Copy className="h-4 w-4" />
-      </div>
+      </button>
       <DropdownMenu>
-        <DropdownMenuTrigger title="Share">
+        <DropdownMenuTrigger aria-label="Share" className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm">
           <ShareIcon size={16} />
         </DropdownMenuTrigger>
         <DropdownMenuContent className="w-12 min-w-12">
@@ -136,16 +139,17 @@ function ArtifactActions({
 
     if (title.includes("letter") || title.includes("concern")) {
       return (
-        <div
-          className="cursor-pointer hover:opacity-70"
+        <button
+          type="button"
+          className="cursor-pointer hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded-sm"
           onClick={(e) => {
             e.stopPropagation();
             handleResistBot();
           }}
-          title="Send via ResistBot"
+          aria-label="Send via ResistBot"
         >
           <Send className="h-4 w-4" />
-        </div>
+        </button>
       );
     }
 
@@ -168,15 +172,52 @@ function ArtifactActions({
 interface ArtifactSectionProps {
   artifact: DocumentArtifact;
   isOpen?: boolean;
+  onToggle?: (open: boolean) => void;
   documentTitle: string;
+}
+
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/#{1,6}\s+/g, "") // headings
+    .replace(/\*\*(.+?)\*\*/g, "$1") // bold
+    .replace(/\*(.+?)\*/g, "$1") // italic
+    .replace(/__(.+?)__/g, "$1") // bold alt
+    .replace(/_(.+?)_/g, "$1") // italic alt
+    .replace(/~~(.+?)~~/g, "$1") // strikethrough
+    .replace(/`(.+?)`/g, "$1") // inline code
+    .replace(/\[(.+?)\]\(.+?\)/g, "$1") // links
+    .replace(/!\[.*?\]\(.+?\)/g, "") // images
+    .replace(/^\s*[-*+]\s+/gm, "") // list items
+    .replace(/^\s*\d+\.\s+/gm, "") // ordered list items
+    .replace(/^\s*>\s+/gm, "") // blockquotes
+    .replace(/\n{2,}/g, " ") // multiple newlines
+    .replace(/\n/g, " ") // single newlines
+    .replace(/\s{2,}/g, " ") // multiple spaces
+    .trim();
 }
 
 export function ArtifactSection({
   artifact,
   isOpen = false,
+  onToggle,
   documentTitle,
 }: ArtifactSectionProps) {
-  const [isCollapsibleOpen, setIsCollapsibleOpen] = useState(isOpen);
+  const [internalOpen, setInternalOpen] = useState(isOpen);
+  const isCollapsibleOpen = onToggle !== undefined ? isOpen : internalOpen;
+  const handleOpenChange = (open: boolean) => {
+    if (onToggle) {
+      onToggle(open);
+    } else {
+      setInternalOpen(open);
+    }
+  };
+  const artifactStyle = getArtifactStyle(artifact.title);
+  const ArtifactIcon = artifactStyle.icon;
+
+  const previewText = useMemo(() => {
+    const plain = stripMarkdown(artifact.content);
+    return plain.length > 120 ? plain.slice(0, 120) + "…" : plain;
+  }, [artifact.content]);
 
   const handleCopyLink = () => {
     const url = new URL(window.location.href);
@@ -194,20 +235,26 @@ export function ArtifactSection({
   return (
     <Collapsible
       open={isCollapsibleOpen}
-      onOpenChange={setIsCollapsibleOpen}
+      onOpenChange={handleOpenChange}
       id={artifact.title.toLowerCase().replace(/\s+/g, "-")}
     >
       <CollapsibleTrigger className="w-full">
-        <div className="mb-4 flex items-center justify-start gap-x-2">
+        <div className="mb-4 flex flex-col items-start gap-y-1">
           <div className="flex items-center justify-start gap-x-2">
             <ChevronsUpDown className="h-4 w-4" />
+            <ArtifactIcon className="h-4 w-4" />
             <h2 className="text-start text-2xl font-bold">{artifact.title}</h2>
           </div>
+          {!isCollapsibleOpen && (
+            <p className="truncate text-sm text-muted-foreground pl-12 w-full text-start">
+              {previewText}
+            </p>
+          )}
         </div>
       </CollapsibleTrigger>
       <CollapsibleContent className="CollapsibleContent">
         <div className="flex items-start justify-center gap-x-2">
-          <div className="w-full max-w-full overflow-x-auto rounded-md border bg-gray-200 p-6 dark:border-gray-700 dark:bg-gray-800">
+          <div className={cn("w-full max-w-full overflow-x-auto rounded-md border border-l-4 bg-muted p-6", artifactStyle.borderClass)}>
             <ArtifactActions
               artifact={artifact}
               onCopyLink={handleCopyLink}
@@ -215,7 +262,7 @@ export function ArtifactSection({
               documentTitle={documentTitle}
               className="md:hidden"
             />
-            <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+            <div className="prose prose-sm dark:prose-invert max-w-none break-words leading-relaxed">
               <Markdown
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}

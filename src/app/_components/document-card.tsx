@@ -4,34 +4,50 @@ import {
   CardHeader,
   CardTitle,
   CardContent,
-  CardFooter,
 } from "~/components/ui/card";
 import { RiskScore } from "./risk-score";
+import { DocumentTypeBadge } from "./document-type-badge";
 import { cn } from "~/lib/utils";
 import type { Document } from "~/generated/prisma/client";
-import { Button } from "./ui/button";
 
 interface DocumentCardProps {
   document: Document;
   className?: string;
 }
 
+function getRiskBorderClass(score: number | null): string {
+  if (score === null) return "border-l-muted";
+  if (score <= 2) return "border-l-green-500";
+  if (score <= 4) return "border-l-yellow-400";
+  if (score <= 6) return "border-l-orange-500";
+  if (score <= 8) return "border-l-red-500";
+  return "border-l-red-600";
+}
+
 export function DocumentCard({ document, className }: DocumentCardProps) {
+  const dateSigned = document.dateSigned
+    ? new Date(document.dateSigned).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : null;
+
   return (
     <Link href={`/eo-summary/${document.slug}`}>
       <Card
         className={cn(
-          "flex h-full flex-col transition-shadow hover:shadow-md",
+          "flex h-full flex-col border-l-4 transition-shadow hover:shadow-md",
+          getRiskBorderClass(document.riskScore),
           className,
         )}
       >
         <CardHeader>
-          <div className="flex items-start justify-between gap-x-4">
-            <CardTitle className="line-clamp-2 flex-1">
-              {document.title}
-            </CardTitle>
+          <div className="mb-2 flex items-center gap-2">
+            <DocumentTypeBadge type={document.type} className="w-auto" />
             <RiskScore score={document.riskScore} className="flex-shrink-0" />
           </div>
+          <CardTitle className="line-clamp-2">{document.title}</CardTitle>
         </CardHeader>
         <CardContent className="flex-1">
           {document.shortSummary && (
@@ -39,12 +55,12 @@ export function DocumentCard({ document, className }: DocumentCardProps) {
               {document.shortSummary}
             </p>
           )}
+          {dateSigned && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Signed {dateSigned}
+            </p>
+          )}
         </CardContent>
-        <CardFooter className="flex items-end justify-end">
-          <Button variant="ghost" className="text-gray-500">
-            Read More
-          </Button>
-        </CardFooter>
       </Card>
     </Link>
   );

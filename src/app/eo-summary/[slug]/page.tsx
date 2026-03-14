@@ -1,14 +1,20 @@
 import type { Metadata, ResolvingMetadata } from "next";
 import { api } from "~/trpc/server";
 import { toTitleCase } from "~/lib/utils";
-import { ArtifactSection } from "./_components/artifact-section";
 import { artifactOrder, getArtifactByTitle } from "~/lib/document-utils";
+import { ArtifactSectionList } from "./_components/artifact-section-list";
 import { DetailsPane } from "./_components/details-pane";
 import SummarySection from "./_components/summary-section";
 import UpdatesSection from "./_components/updates-section";
 import { auth } from "~/server/auth";
 import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { RiskScore } from "~/components/risk-score";
+import { DocumentTypeBadge } from "~/components/document-type-badge";
+import { DocumentBreadcrumbs } from "./_components/breadcrumbs";
+import { RelatedDocuments } from "./_components/related-documents";
+import { SiteContextBanner } from "./_components/site-context-banner";
+import { StickyDocumentHeader } from "./_components/sticky-document-header";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -66,47 +72,72 @@ export default async function Page({ params, searchParams }: Props) {
   const honestTitle = getArtifactByTitle(document, "Honest Title");
 
   return (
-    <article className="flex flex-col gap-y-12 pt-6">
+    <article className="flex flex-col gap-y-12 pb-16 pt-6 md:pb-0">
+      <StickyDocumentHeader
+        title={toTitleCase(document.title)}
+        riskScore={document.riskScore}
+        sectionTitles={artifactOrder.filter(
+          (title) => getArtifactByTitle(document, title) !== undefined,
+        )}
+      />
+      <DocumentBreadcrumbs type={document.type} title={toTitleCase(document.title)} />
+      <SiteContextBanner />
       <div className="flex flex-col gap-y-2">
-        <h1 className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>
+        <h1 id="document-title" className="text-2xl font-bold">{toTitleCase(document?.title)}</h1>
         {honestTitle && (
           <div className="flex items-baseline gap-x-2">
-            <h4 className="text-sm text-gray-500">Honest Title:</h4>
+            <h4 className="text-sm text-muted-foreground">Honest Title:</h4>
             <h2 className="text-xl font-bold">{honestTitle.content}</h2>
           </div>
         )}
       </div>
       <section className="flex flex-col gap-x-6 gap-y-6 md:flex-row">
         <DetailsPane document={document} />
-        <SummarySection document={document} />
+        <SummarySection
+          document={document}
+          sectionCount={
+            artifactOrder.filter(
+              (title) => getArtifactByTitle(document, title) !== undefined,
+            ).length
+          }
+          documentType={document.type}
+          riskScore={document.riskScore}
+        />
       </section>
       {updates && <UpdatesSection updates={updates} />}
-      <div className="flex flex-col gap-y-8">
-        {artifactOrder
+      <ArtifactSectionList
+        artifacts={artifactOrder
           .map((title) => getArtifactByTitle(document, title))
-          .filter((artifact) => artifact !== undefined)
-          .map((artifact) => (
-            <ArtifactSection
-              key={artifact.id}
-              artifact={artifact}
-              isOpen={openSections.includes(artifact.title)}
-              documentTitle={document.title}
-            />
-          ))}
-      </div>
-      <div className="mt-8 flex items-center justify-between border-t pt-8">
+          .filter((artifact) => artifact !== undefined)}
+        initialOpenSections={openSections}
+        documentTitle={document.title}
+        riskScore={document.riskScore}
+        documentType={document.type}
+      />
+      <RelatedDocuments
+        documentId={document.id}
+        type={document.type}
+        riskScore={document.riskScore ?? 0}
+      />
+      <nav className="mt-8 grid grid-cols-1 gap-4 border-t pt-8 md:grid-cols-2">
         {adjacentDocs.previous ? (
           <Link
             href={`/eo-summary/${adjacentDocs.previous.slug}`}
-            className="group flex items-center gap-x-2 text-sm text-gray-500 hover:text-gray-700"
+            className="group flex items-center gap-x-3 rounded-xl border bg-card p-4 shadow transition-colors hover:bg-accent"
           >
-            <ChevronLeftIcon className="h-4 w-4" />
-            <span>
-              <span className="block text-xs text-gray-400 group-hover:text-gray-600">
+            <ChevronLeftIcon className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">
                 Previous
               </span>
-              {toTitleCase(adjacentDocs.previous.title)}
-            </span>
+              <span className="text-sm font-semibold leading-tight">
+                {toTitleCase(adjacentDocs.previous.title)}
+              </span>
+              <div className="flex items-center gap-2 pt-1">
+                <RiskScore score={adjacentDocs.previous.riskScore} />
+                <DocumentTypeBadge type={adjacentDocs.previous.type} className="w-auto" />
+              </div>
+            </div>
           </Link>
         ) : (
           <div />
@@ -114,23 +145,29 @@ export default async function Page({ params, searchParams }: Props) {
         {adjacentDocs.next ? (
           <Link
             href={`/eo-summary/${adjacentDocs.next.slug}`}
-            className="group flex items-center gap-x-2 text-sm text-gray-500 hover:text-gray-700"
+            className="group flex items-center gap-x-3 rounded-xl border bg-card p-4 shadow transition-colors hover:bg-accent md:flex-row-reverse md:text-right"
           >
-            <span className="text-right">
-              <span className="block text-xs text-gray-400 group-hover:text-gray-600">
+            <ChevronRightIcon className="h-5 w-5 shrink-0 text-muted-foreground group-hover:text-foreground" />
+            <div className="flex min-w-0 flex-1 flex-col gap-1 md:items-end">
+              <span className="text-xs font-medium text-muted-foreground">
                 Next
               </span>
-              {toTitleCase(adjacentDocs.next.title)}
-            </span>
-            <ChevronRightIcon className="h-4 w-4" />
+              <span className="text-sm font-semibold leading-tight">
+                {toTitleCase(adjacentDocs.next.title)}
+              </span>
+              <div className="flex items-center gap-2 pt-1">
+                <RiskScore score={adjacentDocs.next.riskScore} />
+                <DocumentTypeBadge type={adjacentDocs.next.type} className="w-auto" />
+              </div>
+            </div>
           </Link>
         ) : (
           <div />
         )}
-      </div>
+      </nav>
       {session && session.user.isAdmin && (
         <Link href={`/admin/documents/${document.id}`}>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-muted-foreground">
             Document Id: {document.id}
           </span>
         </Link>
