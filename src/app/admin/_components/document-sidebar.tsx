@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { type Document, type DocumentArtifact } from "~/generated/prisma/client";
-import { ChevronDown, ChevronRight, FileText, Loader2, Play, Sparkles } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText, Loader2, Play, RefreshCw, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { Card, CardContent, CardHeader, CardTitle } from "~/app/_components/ui/card";
 import {
@@ -313,41 +313,63 @@ export function DocumentSidebar({ document: doc }: DocumentSidebarProps) {
                       className={`h-4 w-4 ${style.borderClass.replace("border-", "text-")}`}
                     />
                     <span className="flex-1 truncate">{title}</span>
-                    <span
-                      className={`h-2 w-2 shrink-0 rounded-full ${
-                        isPresent ? "bg-green-500" : "border border-muted-foreground"
-                      }`}
-                    />
                   </button>
-                  {!isPresent && (
-                    isDeprecated ? (
+                  {isPresent && route && !isDeprecated ? (
+                    isGenerating ? (
+                      <div className="ml-1 flex w-5 shrink-0 items-center justify-center">
+                        <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+                      </div>
+                    ) : (
                       <TooltipProvider>
                         <Tooltip>
                           <TooltipTrigger asChild>
                             <button
-                              disabled
-                              className="ml-1 shrink-0 rounded p-1 text-muted-foreground opacity-50"
+                              onClick={() => void generateArtifact(title, route)}
+                              className="group/regen ml-1 flex w-5 shrink-0 items-center justify-center rounded text-muted-foreground hover:text-foreground"
                             >
-                              <Play className="h-3 w-3" />
+                              <span className="block h-2 w-2 rounded-full bg-green-500 group-hover/regen:hidden" />
+                              <RefreshCw className="hidden h-3 w-3 group-hover/regen:block" />
                             </button>
                           </TooltipTrigger>
-                          <TooltipContent>Deprecated</TooltipContent>
+                          <TooltipContent>Regenerate</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    ) : route ? (
-                      <button
-                        onClick={() => generateArtifact(title, route)}
-                        disabled={isGenerating}
-                        className="ml-1 shrink-0 rounded p-1 text-muted-foreground hover:text-foreground disabled:opacity-50"
-                        title={`Generate ${title}`}
-                      >
-                        {isGenerating ? (
-                          <Loader2 className="h-3 w-3 animate-spin" />
-                        ) : (
-                          <Play className="h-3 w-3" />
-                        )}
-                      </button>
-                    ) : null
+                    )
+                  ) : isPresent ? (
+                    <div className="ml-1 flex w-5 shrink-0 items-center justify-center">
+                      <span className="h-2 w-2 rounded-full bg-green-500" />
+                    </div>
+                  ) : isDeprecated ? (
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            disabled
+                            className="ml-1 flex w-5 shrink-0 items-center justify-center rounded text-muted-foreground opacity-50"
+                          >
+                            <Play className="h-3 w-3" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent>Deprecated</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  ) : route ? (
+                    <button
+                      onClick={() => generateArtifact(title, route)}
+                      disabled={isGenerating}
+                      className="ml-1 flex w-5 shrink-0 items-center justify-center rounded text-muted-foreground hover:text-foreground disabled:opacity-50"
+                      title={`Generate ${title}`}
+                    >
+                      {isGenerating ? (
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      ) : (
+                        <Play className="h-3 w-3" />
+                      )}
+                    </button>
+                  ) : (
+                    <div className="ml-1 flex w-5 shrink-0 items-center justify-center">
+                      <span className="h-2 w-2 rounded-full border border-muted-foreground" />
+                    </div>
                   )}
                 </div>
               );

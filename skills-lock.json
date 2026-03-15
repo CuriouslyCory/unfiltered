@@ -6,6 +6,11 @@
       "sourceType": "github",
       "computedHash": "d2b5bcc7c09fdb649129ffc7dd7b647ec1b155736974b974292675afd588cb39"
     },
+    "ship-it": {
+      "source": "CuriouslyCory/skills",
+      "sourceType": "github",
+      "computedHash": "1969594ccdb865875d950ef4ef5ee38919b159707abd617ceb9e9b4d0e61dce0"
+    },
     "vercel-composition-patterns": {
       "source": "vercel-labs/agent-skills",
       "sourceType": "github",
