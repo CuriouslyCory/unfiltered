@@ -33,16 +33,18 @@ Save the current branch name for later use.
    - **C) Cancel** — abort the entire workflow
 4. Stage the selected files using `git add <file1> <file2> ...` with explicit file paths. **Never use `git add -A` or `git add .`**.
 5. Run `git diff --cached --stat` and `git diff --cached` to understand the changes.
-6. Generate a clear, descriptive commit message based on the diff.
-7. Create the commit.
+6. **If on `main`**, create a feature branch before committing (see Step 2b below).
+7. Generate a clear, descriptive commit message based on the diff.
+8. Create the commit.
 
 ### Step 2b: Create Feature Branch (if on main)
 
-If the current branch is `main`, create a feature branch before proceeding:
+This step is called from Step 2.6 when the current branch is `main`. The branch must be created **before** the commit so that local `main` stays clean and avoids divergence after the PR is squash-merged.
 
 1. Generate a descriptive branch name from the staged changes (e.g., `feat/add-user-validation`, `fix/null-pointer-in-parser`). Use kebab-case with a conventional prefix (`feat/`, `fix/`, `chore/`, `refactor/`, etc.).
-2. Run `git checkout -b <branch-name>` to create and switch to the new branch. The commit made in Step 2 comes along automatically.
+2. Run `git checkout -b <branch-name>` to create and switch to the new branch. Staged changes carry over to the new branch.
 3. Save this branch name for cleanup in Step 6.
+4. Return to Step 2.7 to commit on the new branch.
 
 ### Step 3: Push and Create PR
 
@@ -83,7 +85,7 @@ If the current branch is `main`, create a feature branch before proceeding:
 
 ## Edge Cases
 
-- **On main with changes**: Create a feature branch automatically (Step 2b) after committing.
+- **On main with changes**: Create a feature branch automatically (Step 2b) before committing, so local `main` stays clean.
 - **On main with no changes**: Stop — nothing to ship.
 - **Detached HEAD**: Stop immediately with a message to check out a named branch.
 - **PR already exists**: Use the existing PR. Skip PR creation, proceed to CI polling.

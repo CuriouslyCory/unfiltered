@@ -9,7 +9,7 @@ import {
 import { api } from "~/trpc/react";
 import { useRouter } from "next/navigation";
 import { Button } from "~/components/ui/button";
-import { PlusCircle, Pencil, X, Save } from "lucide-react";
+import { PlusCircle, Pencil, X, Save, RefreshCw, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import {
   Select,
@@ -23,6 +23,7 @@ import {
   artifactSectionId,
   getArtifactStyle,
 } from "~/lib/document-utils";
+import { env } from "~/env";
 
 interface DocumentEditorProps {
   document: Document & { documentArtifact: DocumentArtifact[] };
@@ -35,6 +36,7 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
     null,
   );
   const [isCreatingArtifact, setIsCreatingArtifact] = useState(false);
+  const [isRegeneratingShortSummary, setIsRegeneratingShortSummary] = useState(false);
   const [formData, setFormData] = useState({
     title: document.title,
     riskScore: document.riskScore,
@@ -166,6 +168,24 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
     });
   };
 
+  async function regenerateShortSummary() {
+    setIsRegeneratingShortSummary(true);
+    try {
+      const url = `${env.NEXT_PUBLIC_WORKFLOW_API_URL}/document/short-summary?documentId=${document.id}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || "Failed to regenerate short summary");
+      }
+      toast.success("Short summary regeneration started");
+      router.refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to regenerate short summary");
+    } finally {
+      setIsRegeneratingShortSummary(false);
+    }
+  }
+
   return (
     <div className="grid gap-8">
       <section id="document-details" className="rounded-lg bg-white/5 p-6">
@@ -215,9 +235,23 @@ export function DocumentEditor({ document }: DocumentEditorProps) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-400">
-              Short Summary
-            </label>
+            <div className="flex items-center gap-2">
+              <label className="block text-sm font-medium text-gray-400">
+                Short Summary
+              </label>
+              <button
+                onClick={() => void regenerateShortSummary()}
+                disabled={isRegeneratingShortSummary}
+                className="rounded p-0.5 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                title="Regenerate short summary"
+              >
+                {isRegeneratingShortSummary ? (
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3.5 w-3.5" />
+                )}
+              </button>
+            </div>
             <textarea
               value={formData.shortSummary}
               onChange={(e) =>

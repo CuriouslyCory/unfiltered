@@ -1,7 +1,7 @@
 {
   "permissions": {
     "allow": [
-      "Bash(find /home/curiouslycory/workspace/active-personal/tools-agents*)",
+      "Bash(find /home/curiouslycory/workspace/active-personal/unfiltered*)",
       "Bash(find:*)",
       "Bash(gh auth:*)",
       "Bash(gh pr view *)",
@@ -10,8 +10,8 @@
       "Bash(git ls-files *)",
       "Bash(git pull:*)",
       "Bash(grep:*)",
-      "Bash(ls /home/curiouslycory/workspace/active-personal/tools-agents*)",
-      "Bash(ls -la /home/curiouslycory/workspace/active-personal/tools-agents*)",
+      "Bash(ls /home/curiouslycory/workspace/active-personal/unfiltered*)",
+      "Bash(ls -la /home/curiouslycory/workspace/active-personal/unfiltered*)",
       "Bash(npx prisma generate)",
       "Bash(pnpm build)",
       "Bash(pnpm check:*)",
